@@ -2,73 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Services\EstoqueService;
 use Illuminate\Support\Facades\DB;
 
 class EstoqueController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        if (!$request->session()->has('usuario_id')) {
-            return redirect()->route('login');
-        }
-
-        $itens = DB::table('estoque as e')
+        $query = DB::table('estoque as e')
             ->join('clinicas as c', 'c.id', '=', 'e.clinica_id')
             ->join('medicamentos as m', 'm.id', '=', 'e.medicamento_id')
-            ->select('e.*', 'c.nome as clinica_nome', 'm.nome as medicamento_nome', 'm.dosagem', 'm.unidade')
-            ->orderBy('c.nome')
-            ->orderBy('m.nome')
-            ->get();
+            ->select('e.*', 'c.nome as clinica_nome', 'm.nome as medicamento_nome', 'm.dosagem', 'm.unidade', 'm.estoque_minimo');
+
+        if (!in_array(session('perfil'), ['superuser', 'admin', 'gestor'], true) && session('clinica_id')) {
+            $query->where('e.clinica_id', session('clinica_id'));
+        }
+
+        $itens = $query->orderBy('c.nome')->orderBy('m.nome')->get()->map(function ($item) {
+            $item->classificacao = EstoqueService::classificar((int) $item->quantidade, (int) $item->estoque_minimo);
+            [$item->badge_class, $item->badge_label] = EstoqueService::badge($item->classificacao);
+
+            return $item;
+        });
 
         return view('estoque.index', compact('itens'));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

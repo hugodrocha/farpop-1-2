@@ -2,24 +2,43 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\DashboardService;
+use App\Services\EstoqueService;
+use App\Services\GraficoService;
+use App\Services\PerfilService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        if (!$request->session()->has('usuario_id')) {
-            return redirect()->route('login');
+        $perfil = session('perfil', '');
+        $clinicaId = (int) session('clinica_id', 0);
+        $visaoGlobal = DashboardService::visaoGlobal($perfil, $clinicaId);
+
+        if ($visaoGlobal) {
+            $totais = DashboardService::dadosGlobais();
+            $cardsClinicas = DashboardService::cardsClinicas();
+            $graficoSaidas = GraficoService::graficoPizzaSvg(
+                DashboardService::graficoSaidasPorClinica(),
+                ['titulo' => 'Dispensações hoje por unidade', 'largura' => 420, 'altura' => 280]
+            );
+            $ultimasSaidas = DashboardService::ultimasSaidas(null, 8);
+        } else {
+            $totais = DashboardService::dadosUnidade($clinicaId);
+            $totais['clinica_nome'] = session('clinica_nome');
+            $cardsClinicas = collect();
+            $graficoSaidas = '';
+            $ultimasSaidas = DashboardService::ultimasSaidas($clinicaId, 8);
         }
 
-        $totais = [
-            'clinicas' => DB::table('clinicas')->where('ativo', 1)->count(),
-            'medicamentos' => DB::table('medicamentos')->where('ativo', 1)->count(),
-            'estoque' => (int) DB::table('estoque')->sum('quantidade'),
-            'usuarios' => DB::table('usuarios')->count(),
-        ];
-
-        return view('dashboard.index', compact('totais'));
+        return view('dashboard.index', compact(
+            'totais',
+            'visaoGlobal',
+            'cardsClinicas',
+            'graficoSaidas',
+            'ultimasSaidas',
+            'perfil'
+        ));
     }
 }

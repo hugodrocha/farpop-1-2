@@ -3,23 +3,33 @@
 @section('title', 'Nova clínica')
 
 @section('content')
-<div class="card">
-    <h2>Nova clínica</h2>
-    <form method="POST" action="{{ route('clinicas.store') }}">
-        @csrf
-        <div class="form-grid">
-            <div><label>Nome</label><input type="text" name="nome" required></div>
-            <div><label>Responsável</label><input type="text" name="responsavel"></div>
-            <div><label>Endereço</label><input type="text" name="endereco"></div>
-            <div><label>Bairro</label><input type="text" name="bairro"></div>
-            <div><label>Telefone</label><input type="text" name="telefone"></div>
-            <div><label>Central</label><select name="eh_central"><option value="0">Não</option><option value="1">Sim</option></select></div>
-            <div><label>Status</label><select name="ativo"><option value="1">Ativa</option><option value="0">Inativa</option></select></div>
+<div class="container-fluid px-0">
+    <div class="mb-4">
+        <h1 class="farpop-page-title"><i class="fas fa-hospital me-2"></i>Nova clínica</h1>
+        <p class="farpop-page-subtitle">Cadastre uma nova unidade da Farmácia Popular.</p>
+    </div>
+
+    @include('partials.flash')
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ route('clinicas.store') }}">
+                @csrf
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label">Nome</label><input type="text" name="nome" class="form-control" required></div>
+                    <div class="col-md-6"><label class="form-label">Responsável</label><input type="text" name="responsavel" class="form-control"></div>
+                    <div class="col-md-8"><label class="form-label">Endereço</label><input type="text" name="endereco" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label">Bairro</label><input type="text" name="bairro" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label">Telefone</label><input type="text" name="telefone" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label">Central</label><select name="eh_central" class="form-select"><option value="0">Não</option><option value="1">Sim</option></select></div>
+                    <div class="col-md-4"><label class="form-label">Status</label><select name="ativo" class="form-select"><option value="1">Ativa</option><option value="0">Inativa</option></select></div>
+                </div>
+                <div class="d-flex gap-2 mt-4">
+                    <button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i> Salvar</button>
+                    <a class="btn btn-outline-secondary" href="{{ route('clinicas.index') }}">Cancelar</a>
+                </div>
+            </form>
         </div>
-        <div class="actions">
-            <button class="btn" type="submit">Salvar</button>
-            <a class="btn" href="{{ route('clinicas.index') }}">Cancelar</a>
-        </div>
-    </form>
+    </div>
 </div>
 @endsection

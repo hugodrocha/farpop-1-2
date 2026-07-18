@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuditoriaService;
+use App\Services\EstoqueService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class EntradaController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        if (!$request->session()->has('usuario_id')) {
-            return redirect()->route('login');
-        }
-
         $entradas = DB::table('entradas_medicamentos as en')
             ->join('clinicas as c', 'c.id', '=', 'en.clinica_id')
             ->join('medicamentos as m', 'm.id', '=', 'en.medicamento_id')
@@ -25,12 +23,8 @@ class EntradaController extends Controller
         return view('entradas.index', compact('entradas'));
     }
 
-    public function create(Request $request)
+    public function create()
     {
-        if (!$request->session()->has('usuario_id')) {
-            return redirect()->route('login');
-        }
-
         $clinicas = DB::table('clinicas')->where('ativo', 1)->orderBy('nome')->get();
         $medicamentos = DB::table('medicamentos')->where('ativo', 1)->orderBy('nome')->get();
 
@@ -39,10 +33,6 @@ class EntradaController extends Controller
 
     public function store(Request $request)
     {
-        if (!$request->session()->has('usuario_id')) {
-            return redirect()->route('login');
-        }
-
         $data = $request->validate([
             'clinica_id' => 'required|integer',
             'medicamento_id' => 'required|integer',
@@ -54,9 +44,8 @@ class EntradaController extends Controller
             'observacao' => 'nullable|max:255',
         ]);
 
-        DB::beginTransaction();
-        try {
-            $uid = $request->session()->get('usuario_id');
+        DB::transaction(function () use ($data) {
+            $uid = session('usuario_id');
             DB::table('entradas_medicamentos')->insert([
                 'clinica_id' => $data['clinica_id'],
                 'medicamento_id' => $data['medicamento_id'],
@@ -70,22 +59,15 @@ class EntradaController extends Controller
                 'data_entrada' => now(),
             ]);
 
-            $this->somarOuCriarEstoque($data['clinica_id'], $data['medicamento_id'], $data['quantidade']);
-            DB::commit();
+            EstoqueService::somarOuCriar((int) $data['clinica_id'], (int) $data['medicamento_id'], (int) $data['quantidade']);
+            AuditoriaService::registrar('ENTRADA_MEDICAMENTO', 'clinica:' . $data['clinica_id'], 'Qtd ' . $data['quantidade']);
+        });
 
-            return redirect()->route('entradas.index')->with('success', 'Entrada registrada com sucesso.');
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            return back()->withErrors(['error' => $e->getMessage()])->withInput();
-        }
+        return redirect()->route('entradas.index')->with('success', 'Entrada registrada com sucesso.');
     }
 
-    public function edit(Request $request, string $id)
+    public function edit(string $id)
     {
-        if (!$request->session()->has('usuario_id')) {
-            return redirect()->route('login');
-        }
-
         $entrada = DB::table('entradas_medicamentos')->where('id', $id)->firstOrFail();
         $clinicas = DB::table('clinicas')->where('ativo', 1)->orderBy('nome')->get();
         $medicamentos = DB::table('medicamentos')->where('ativo', 1)->orderBy('nome')->get();
@@ -95,10 +77,6 @@ class EntradaController extends Controller
 
     public function update(Request $request, string $id)
     {
-        if (!$request->session()->has('usuario_id')) {
-            return redirect()->route('login');
-        }
-
         $data = $request->validate([
             'clinica_id' => 'required|integer',
             'medicamento_id' => 'required|integer',
@@ -121,36 +99,13 @@ class EntradaController extends Controller
             'observacao' => $data['observacao'] ?? null,
         ]);
 
-        return redirect()->route('entradas.index')->with('success', 'Entrada atualizada com sucesso.');
+        return redirect()->route('entradas.index')->with('success', 'Entrada atualizada.');
     }
 
-    public function destroy(Request $request, string $id)
+    public function destroy(string $id)
     {
-        if (!$request->session()->has('usuario_id')) {
-            return redirect()->route('login');
-        }
-
         DB::table('entradas_medicamentos')->where('id', $id)->delete();
 
-        return redirect()->route('entradas.index')->with('success', 'Entrada removida com sucesso.');
-    }
-
-    private function somarOuCriarEstoque(int $clinicaId, int $medicamentoId, int $quantidade): void
-    {
-        $estoque = DB::table('estoque')->where('clinica_id', $clinicaId)->where('medicamento_id', $medicamentoId)->first();
-
-        if ($estoque) {
-            DB::table('estoque')->where('clinica_id', $clinicaId)->where('medicamento_id', $medicamentoId)->update([
-                'quantidade' => (int) $estoque->quantidade + $quantidade,
-                'atualizado_em' => now(),
-            ]);
-        } else {
-            DB::table('estoque')->insert([
-                'clinica_id' => $clinicaId,
-                'medicamento_id' => $medicamentoId,
-                'quantidade' => $quantidade,
-                'atualizado_em' => now(),
-            ]);
-        }
+        return redirect()->route('entradas.index')->with('success', 'Entrada removida.');
     }
 }

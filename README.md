@@ -1,85 +1,80 @@
 # FARPOP 1.1
 
-Sistema web desenvolvido em Laravel para gestão farmacêutica, com foco em autenticação de usuários, painel inicial e módulos de cadastro e controle relacionados a clínicas, medicamentos e usuários.
+Sistema de gestão farmacêutica da Prefeitura de Mesquita, migrado do PHP legado (`htdocs/farpop`) para Laravel 12.
 
-## O que foi feito
+## Módulos implementados
 
-### Funcionalidades implementadas
-- Tela de login com autenticação baseada em usuário e senha.
-- Controle de sessão para proteger páginas internas.
-- Dashboard com resumo de dados principais do sistema.
-- Módulos de navegação para clínicas, medicamentos e usuários.
-- Layout compartilhado para padronizar a interface das páginas.
-- Estrutura inicial de controllers para gestão de estoque, entradas, saídas, transferências e auditoria.
+- **Autenticação** — login, bloqueio por tentativas, perfis de acesso
+- **Dashboard** — visão global (admin/central) e visão por unidade, KPIs, gráficos SVG, alertas de estoque
+- **Estoque** — consulta com semáforo verde/amarelo/vermelho
+- **Entradas / Saídas** — movimentação com auditoria; saídas com múltiplos itens, bloqueio de duplicidade no dia, comprovante
+- **Transferências** — lote com código de barras, nota 26 dígitos, recebimento, trânsito, cancelamento
+- **Aqui Tem** — busca de medicamentos disponíveis por unidade
+- **Cadastros** — clínicas, medicamentos, importação REMUME (CSV)
+- **Usuários** — CRUD com perfis hierárquicos
+- **Chat** — canal geral + mensagens privadas (widget flutuante)
+- **Barra de avisos** — marquee no rodapé
+- **Configurações** — alertas de estoque, chat, diagnóstico PEC/e-SUS
+- **Auditoria** — log de ações + ações críticas (zerar estoque, superuser)
+- **Trocar senha**
 
-### Páginas principais
-- Login: /
-- Dashboard: /dashboard
-- Clínicas: /clinicas
-- Medicamentos: /medicamentos
-- Usuários: /usuarios
+## Interface
 
-## Tecnologias utilizadas
-- PHP 8.2
-- Laravel 12
-- Blade templates
-- Composer
-- Vite / Node.js para assets frontend
+- Bootstrap 5 + tema customizado com **degradês verde/teal/cyan**
+- Sidebar colapsável (padrão TELREG 2.0)
+- **Brasão da Prefeitura** como marca d'água no conteúdo
+- Barra inferior de avisos + botão flutuante de chat
 
-## Como executar o projeto
+## Banco de dados
 
-1. Acesse a pasta do projeto:
-   ```bash
-   cd c:\laravel\farpop-1-1
-   ```
+O sistema usa o banco MySQL **`farpop`** existente (mesmo schema do `instalar.php` legado). Configure no `.env`:
 
-2. Instale as dependências do PHP:
-   ```bash
-   composer install
-   ```
+```env
+DB_DATABASE=farpop
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-3. Crie o arquivo de ambiente e gere a chave da aplicação:
-   ```bash
-   copy .env.example .env
-   php artisan key:generate
-   ```
+Opcional — integração PEC/e-SUS (PostgreSQL):
 
-4. Instale as dependências do frontend:
-   ```bash
-   npm install
-   ```
+```env
+PEC_HABILITADO=false
+PEC_HOST=127.0.0.1
+PEC_PORT=5433
+PEC_DB=esus
+PEC_USER=postgres
+PEC_PASSWORD=
+PEC_SCHEMA=public
+```
 
-5. Execute as migrações do banco de dados:
-   ```bash
-   php artisan migrate
-   ```
+## Como executar
 
-6. Inicie o servidor local:
-   ```bash
-   php artisan serve
-   ```
+**Importante:** o TELREG 2.0 e o FARPOP rodam em portas diferentes para não conflitar.
 
-7. Acesse no navegador:
-   ```text
-   http://127.0.0.1:8000
-   ```
+| Sistema | URL | Porta |
+|---------|-----|-------|
+| **FARPOP 1.1** | http://127.0.0.1:8001/login | 8001 |
+| TELREG 2.0 | http://127.0.0.1:8000/login | 8000 |
 
-## Acesso inicial
+Se abrir `http://127.0.0.1:8000/login`, verá o **TELREG** — isso é normal quando os dois projetos estão na mesma máquina.
 
-Credenciais informadas para acesso local:
-- Usuário: super.admin
-- Senha: farpop2026
+### FARPOP (porta 8001)
 
-## Estrutura do projeto
+```powershell
+cd C:\laravel\farpop-1-1
+composer install
+php artisan serve --host=127.0.0.1 --port=8001
+```
 
-- app/Http/Controllers: controladores da aplicação
-- resources/views: páginas Blade e layouts
-- routes/web.php: rotas principais
-- database/migrations: estrutura do banco
-- public: arquivos públicos acessíveis pelo navegador
+Ou dê duplo clique em **`serve-farpop.bat`** na pasta do projeto.
 
-## Observações
+Acesse: **http://127.0.0.1:8001/login**
 
-Este projeto está em fase de evolução e possui a base inicial da aplicação pronta para expansão com novos módulos e regras de negócio.
-usuário: super.admin
-senha: farpop2026
+**Credenciais padrão:** `super.admin` / `farpop2026`
+
+## Estrutura
+
+- `app/Services/` — regras de negócio (estoque, transferências, saídas, PEC, chat…)
+- `app/Http/Middleware/` — autenticação e controle de perfil
+- `resources/views/` — telas Blade
+- `config/farpop.php` — configurações do sistema

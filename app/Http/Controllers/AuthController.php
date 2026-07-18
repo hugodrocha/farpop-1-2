@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\PerfilService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -9,6 +10,10 @@ class AuthController extends Controller
 {
     public function showLogin()
     {
+        if (session()->has('usuario_id')) {
+            return redirect()->route(session('perfil') === 'consulta' ? 'aqui-tem.index' : 'dashboard');
+        }
+
         return view('auth.login');
     }
 
@@ -31,19 +36,18 @@ class AuthController extends Controller
             return back()->withErrors(['usuario' => 'Usuário não encontrado.'])->withInput();
         }
 
-        if ((int)($user->bloqueado ?? 0) === 1) {
+        if ((int) ($user->bloqueado ?? 0) === 1) {
             return back()->withErrors(['usuario' => 'Usuário bloqueado. Procure um administrador.'])->withInput();
         }
 
         if (!password_verify($senha, $user->senha)) {
-            $tentativas = (int)($user->tentativas_erradas ?? 0) + 1;
-            $bloqueado = $tentativas >= 5 ? 1 : 0;
+            $tentativas = (int) ($user->tentativas_erradas ?? 0) + 1;
             DB::table('usuarios')->where('id', $user->id)->update([
                 'tentativas_erradas' => $tentativas,
-                'bloqueado' => $bloqueado,
+                'bloqueado' => $tentativas >= 5 ? 1 : 0,
             ]);
 
-            if ($bloqueado) {
+            if ($tentativas >= 5) {
                 return back()->withErrors(['usuario' => 'Senha incorreta. Usuário bloqueado por excesso de tentativas.'])->withInput();
             }
 
@@ -52,11 +56,21 @@ class AuthController extends Controller
 
         DB::table('usuarios')->where('id', $user->id)->update(['tentativas_erradas' => 0]);
 
+        $clinicaNome = null;
+        if ($user->clinica_id) {
+            $clinicaNome = DB::table('clinicas')->where('id', $user->clinica_id)->value('nome');
+        }
+
         $request->session()->put('usuario_id', $user->id);
         $request->session()->put('usuario', $user->usuario);
         $request->session()->put('nome_completo', $user->nome_completo);
         $request->session()->put('perfil', $user->perfil);
         $request->session()->put('clinica_id', $user->clinica_id);
+        $request->session()->put('clinica_nome', $clinicaNome);
+
+        if ($user->perfil === 'consulta') {
+            return redirect()->route('aqui-tem.index');
+        }
 
         return redirect()->route('dashboard');
     }

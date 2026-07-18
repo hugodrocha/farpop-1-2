@@ -3,39 +3,194 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'FARPOP 1.1')</title>
-    <style>
-        body{margin:0;font-family:Arial,sans-serif;background:#f8fafc;color:#0f172a;}
-        .topo{background:#064e3b;color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;}
-        .nav{background:#0f172a;padding:12px 24px;display:flex;flex-wrap:wrap;gap:10px;}
-        .nav a{color:#fff;text-decoration:none;padding:8px 12px;border-radius:8px;background:#1e293b;}
-        .nav a.active{background:#0f766e;}
-        .card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.05);}
-        .wrap{padding:24px;}
-        table{width:100%;border-collapse:collapse;background:#fff;}th,td{padding:12px;border-bottom:1px solid #e2e8f0;text-align:left;}a{color:#0f766e;text-decoration:none;} .btn{display:inline-block;padding:10px 14px;border-radius:10px;background:#0f766e;color:#fff;text-decoration:none;margin-right:8px;margin-bottom:8px;} .muted{color:#64748b;font-size:13px;} .alert{padding:10px 12px;border-radius:10px;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;margin-bottom:12px;} .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;} label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;} input,select,textarea{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;} .actions{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;}
-    </style>
+    <link rel="icon" type="image/png" href="{{ config('farpop.brasao_url') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    @include('partials.theme')
+    @stack('styles')
 </head>
 <body>
-<div class="topo">
-    <div>
-        <h2 style="margin:0;">FARPOP 1.1</h2>
-        <div class="muted">Olá, {{ session('nome_completo') ?: (session('usuario') ?: 'Usuário') }}</div>
+@php
+    use App\Services\PerfilService;
+    $perfil = session('perfil', '');
+    $podeAdmin = PerfilService::ehAdmin($perfil);
+    $podeOperacional = PerfilService::ehOperacional($perfil);
+    $ehConsulta = PerfilService::ehConsulta($perfil);
+    $podeConfig = in_array($perfil, ['superuser', 'admin'], true);
+    $podeUsuarios = PerfilService::podeAcessarGestaoUsuarios($perfil);
+    $logado = session()->has('usuario_id');
+@endphp
+
+<div class="layout-sistema">
+    @if($logado)
+        <div class="menu-overlay" id="menuOverlay" onclick="fecharMenuMobile()"></div>
+        <aside class="sidebar-sistema" id="sidebarSistema">
+            <div class="sidebar-topo">
+                <button type="button" class="sidebar-pin-btn" id="btnFixarSidebar" title="Fixar menu"><i class="fas fa-thumbtack"></i></button>
+                <div class="sidebar-logo-area">
+                    <img src="{{ config('farpop.brasao_url') }}" alt="Brasão Mesquita" class="sidebar-logo">
+                    <div class="sidebar-texto-topo">
+                        <h1 class="sidebar-titulo">FARPOP 1.1</h1>
+                        <p class="sidebar-subtitulo">Farmácia Popular</p>
+                    </div>
+                </div>
+                <div class="sidebar-usuario-box">
+                    <p class="sidebar-usuario-nome">{{ session('nome_completo') ?: session('usuario') }}</p>
+                    <p class="sidebar-usuario-info">{{ PerfilService::nome($perfil) }}</p>
+                    @if(session('clinica_nome'))<p class="sidebar-usuario-info">{{ session('clinica_nome') }}</p>@endif
+                </div>
+            </div>
+            <nav class="sidebar-menu">
+                @if($ehConsulta)
+                    <div class="sidebar-item">
+                        <a href="{{ route('aqui-tem.index') }}" class="sidebar-link {{ request()->routeIs('aqui-tem.*') ? 'active' : '' }}">
+                            <i class="fas fa-search sidebar-icone"></i><span class="sidebar-label">Aqui Tem</span>
+                        </a>
+                        <span class="sidebar-tooltip">Aqui Tem</span>
+                    </div>
+                @else
+                    <div class="sidebar-item">
+                        <a href="{{ route('dashboard') }}" class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                            <i class="fas fa-home sidebar-icone"></i><span class="sidebar-label">Início</span>
+                        </a>
+                        <span class="sidebar-tooltip">Início</span>
+                    </div>
+
+                    @if(in_array($perfil, ['superuser','admin','farmaceutico','consulta'], true))
+                    <div class="sidebar-item">
+                        <a href="{{ route('aqui-tem.index') }}" class="sidebar-link {{ request()->routeIs('aqui-tem.*') ? 'active' : '' }}">
+                            <i class="fas fa-map-marker-alt sidebar-icone"></i><span class="sidebar-label">Aqui Tem</span>
+                        </a>
+                        <span class="sidebar-tooltip">Aqui Tem Remédio</span>
+                    </div>
+                    @endif
+
+                    @if($podeOperacional)
+                    <div class="sidebar-item">
+                        <button type="button" class="sidebar-dropdown-btn {{ request()->routeIs('estoque.*','entradas.*','saidas.*','transferencias.*') ? 'active' : '' }}" onclick="toggleSubmenu('menuEstoque', this)">
+                            <i class="fas fa-pills sidebar-icone"></i><span class="sidebar-label">Estoque</span>
+                            <span class="sidebar-seta {{ request()->routeIs('estoque.*','entradas.*','saidas.*','transferencias.*') ? 'open' : '' }}">▾</span>
+                        </button>
+                        <span class="sidebar-tooltip">Estoque</span>
+                    </div>
+                    <div id="menuEstoque" class="sidebar-submenu {{ request()->routeIs('estoque.*','entradas.*','saidas.*','transferencias.*') ? 'show' : '' }}">
+                        <a href="{{ route('estoque.index') }}" class="sidebar-sublink {{ request()->routeIs('estoque.*') ? 'active' : '' }}"><i class="fas fa-boxes sidebar-icone"></i><span class="sidebar-label">Consultar estoque</span></a>
+                        <a href="{{ route('entradas.index') }}" class="sidebar-sublink {{ request()->routeIs('entradas.*') ? 'active' : '' }}"><i class="fas fa-arrow-down sidebar-icone"></i><span class="sidebar-label">Entradas</span></a>
+                        <a href="{{ route('saidas.index') }}" class="sidebar-sublink {{ request()->routeIs('saidas.*') ? 'active' : '' }}"><i class="fas fa-arrow-up sidebar-icone"></i><span class="sidebar-label">Saídas</span></a>
+                        <a href="{{ route('transferencias.create') }}" class="sidebar-sublink {{ request()->routeIs('transferencias.create') ? 'active' : '' }}"><i class="fas fa-dolly sidebar-icone"></i><span class="sidebar-label">Enviar lote</span></a>
+                        <a href="{{ route('transferencias.receber') }}" class="sidebar-sublink {{ request()->routeIs('transferencias.receber*') ? 'active' : '' }}"><i class="fas fa-barcode sidebar-icone"></i><span class="sidebar-label">Receber lote</span></a>
+                        <a href="{{ route('transferencias.transito') }}" class="sidebar-sublink {{ request()->routeIs('transferencias.transito') ? 'active' : '' }}"><i class="fas fa-truck sidebar-icone"></i><span class="sidebar-label">Em trânsito</span></a>
+                        <a href="{{ route('transferencias.index') }}" class="sidebar-sublink {{ request()->routeIs('transferencias.index') ? 'active' : '' }}"><i class="fas fa-list sidebar-icone"></i><span class="sidebar-label">Histórico</span></a>
+                    </div>
+                    @endif
+
+                    @if($podeAdmin)
+                    <div class="sidebar-item">
+                        <button type="button" class="sidebar-dropdown-btn {{ request()->routeIs('clinicas.*','medicamentos.*') ? 'active' : '' }}" onclick="toggleSubmenu('menuCadastros', this)">
+                            <i class="fas fa-database sidebar-icone"></i><span class="sidebar-label">Cadastros</span>
+                            <span class="sidebar-seta {{ request()->routeIs('clinicas.*','medicamentos.*') ? 'open' : '' }}">▾</span>
+                        </button>
+                        <span class="sidebar-tooltip">Cadastros</span>
+                    </div>
+                    <div id="menuCadastros" class="sidebar-submenu {{ request()->routeIs('clinicas.*','medicamentos.*') ? 'show' : '' }}">
+                        <a href="{{ route('clinicas.index') }}" class="sidebar-sublink {{ request()->routeIs('clinicas.*') ? 'active' : '' }}"><i class="fas fa-hospital sidebar-icone"></i><span class="sidebar-label">Clínicas</span></a>
+                        <a href="{{ route('medicamentos.index') }}" class="sidebar-sublink {{ request()->routeIs('medicamentos.index','medicamentos.edit') ? 'active' : '' }}"><i class="fas fa-capsules sidebar-icone"></i><span class="sidebar-label">Medicamentos</span></a>
+                        <a href="{{ route('medicamentos.importar') }}" class="sidebar-sublink {{ request()->routeIs('medicamentos.importar*') ? 'active' : '' }}"><i class="fas fa-file-import sidebar-icone"></i><span class="sidebar-label">Importar REMUME</span></a>
+                    </div>
+                    @endif
+
+                    @if($podeUsuarios)
+                    <div class="sidebar-item">
+                        <button type="button" class="sidebar-dropdown-btn {{ request()->routeIs('usuarios.*') ? 'active' : '' }}" onclick="toggleSubmenu('menuUsuarios', this)">
+                            <i class="fas fa-users sidebar-icone"></i><span class="sidebar-label">Usuários</span>
+                            <span class="sidebar-seta {{ request()->routeIs('usuarios.*') ? 'open' : '' }}">▾</span>
+                        </button>
+                        <span class="sidebar-tooltip">Usuários</span>
+                    </div>
+                    <div id="menuUsuarios" class="sidebar-submenu {{ request()->routeIs('usuarios.*') ? 'show' : '' }}">
+                        <a href="{{ route('usuarios.create') }}" class="sidebar-sublink {{ request()->routeIs('usuarios.create') ? 'active' : '' }}"><i class="fas fa-user-plus sidebar-icone"></i><span class="sidebar-label">Cadastrar</span></a>
+                        <a href="{{ route('usuarios.index') }}" class="sidebar-sublink {{ request()->routeIs('usuarios.index','usuarios.edit') ? 'active' : '' }}"><i class="fas fa-users-cog sidebar-icone"></i><span class="sidebar-label">Gerenciar</span></a>
+                    </div>
+                    @endif
+
+                    @if($podeConfig)
+                    <div class="sidebar-item">
+                        <button type="button" class="sidebar-dropdown-btn {{ request()->routeIs('configuracoes.*','auditoria.*','avisos.*') ? 'active' : '' }}" onclick="toggleSubmenu('menuConfig', this)">
+                            <i class="fas fa-cog sidebar-icone"></i><span class="sidebar-label">Administração</span>
+                            <span class="sidebar-seta {{ request()->routeIs('configuracoes.*','auditoria.*','avisos.*') ? 'open' : '' }}">▾</span>
+                        </button>
+                        <span class="sidebar-tooltip">Administração</span>
+                    </div>
+                    <div id="menuConfig" class="sidebar-submenu {{ request()->routeIs('configuracoes.*','auditoria.*','avisos.*') ? 'show' : '' }}">
+                        <a href="{{ route('configuracoes.index') }}" class="sidebar-sublink {{ request()->routeIs('configuracoes.*') ? 'active' : '' }}"><i class="fas fa-sliders-h sidebar-icone"></i><span class="sidebar-label">Configurações</span></a>
+                        <a href="{{ route('auditoria.index') }}" class="sidebar-sublink {{ request()->routeIs('auditoria.index') ? 'active' : '' }}"><i class="fas fa-shield-alt sidebar-icone"></i><span class="sidebar-label">Auditoria</span></a>
+                        <a href="{{ route('auditoria.chat') }}" class="sidebar-sublink {{ request()->routeIs('auditoria.chat') ? 'active' : '' }}"><i class="fas fa-comment-dots sidebar-icone"></i><span class="sidebar-label">Auditoria chat</span></a>
+                        <a href="{{ route('avisos.index') }}" class="sidebar-sublink {{ request()->routeIs('avisos.*') ? 'active' : '' }}"><i class="fas fa-bullhorn sidebar-icone"></i><span class="sidebar-label">Barra de avisos</span></a>
+                    </div>
+                    @endif
+                @endif
+
+                <div class="sidebar-item">
+                    <a href="{{ route('trocar-senha.index') }}" class="sidebar-link {{ request()->routeIs('trocar-senha.*') ? 'active' : '' }}">
+                        <i class="fas fa-key sidebar-icone"></i><span class="sidebar-label">Trocar senha</span>
+                    </a>
+                    <span class="sidebar-tooltip">Trocar senha</span>
+                </div>
+                <div class="sidebar-item">
+                    <a href="{{ route('logout') }}" class="sidebar-link"><i class="fas fa-sign-out-alt sidebar-icone"></i><span class="sidebar-label">Sair</span></a>
+                    <span class="sidebar-tooltip">Sair</span>
+                </div>
+            </nav>
+        </aside>
+    @endif
+
+    <div class="conteudo-sistema">
+        @if($logado)
+        <div class="menu-mobile-topo">
+            <button type="button" class="menu-mobile-botao" id="btnAbrirMenuMobile"><i class="fas fa-bars"></i></button>
+            <p class="menu-mobile-titulo">FARPOP 1.1</p>
+            <span style="width:42px;"></span>
+        </div>
+        @endif
+        <div class="main-content">@yield('content')</div>
     </div>
-    <a class="btn" href="{{ route('logout') }}">Sair</a>
 </div>
-<nav class="nav">
-    <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">Dashboard</a>
-    <a href="{{ route('clinicas.index') }}" class="{{ request()->routeIs('clinicas.*') ? 'active' : '' }}">Clínicas</a>
-    <a href="{{ route('medicamentos.index') }}" class="{{ request()->routeIs('medicamentos.*') ? 'active' : '' }}">Medicamentos</a>
-    <a href="{{ route('usuarios.index') }}" class="{{ request()->routeIs('usuarios.*') ? 'active' : '' }}">Usuários</a>
-    <a href="{{ route('estoque.index') }}" class="{{ request()->routeIs('estoque.*') ? 'active' : '' }}">Estoque</a>
-    <a href="{{ route('entradas.index') }}" class="{{ request()->routeIs('entradas.*') ? 'active' : '' }}">Entradas</a>
-    <a href="{{ route('saidas.index') }}" class="{{ request()->routeIs('saidas.*') ? 'active' : '' }}">Saídas</a>
-    <a href="{{ route('transferencias.index') }}" class="{{ request()->routeIs('transferencias.*') ? 'active' : '' }}">Transferências</a>
-    <a href="{{ route('auditoria.index') }}" class="{{ request()->routeIs('auditoria.*') ? 'active' : '' }}">Auditoria</a>
-</nav>
-<div class="wrap">
-    @yield('content')
-</div>
+
+@include('partials.aviso_barra')
+@include('partials.chat_widget')
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleSubmenu(id, btn) {
+    document.getElementById(id)?.classList.toggle('show');
+    btn.querySelector('.sidebar-seta')?.classList.toggle('open');
+}
+(function () {
+    const sidebar = document.getElementById('sidebarSistema');
+    const pinBtn = document.getElementById('btnFixarSidebar');
+    const overlay = document.getElementById('menuOverlay');
+    const mobileBtn = document.getElementById('btnAbrirMenuMobile');
+    const key = 'farpop_sidebar_fixada';
+    if (!sidebar) return;
+    const isMobile = () => window.matchMedia('(max-width: 991px)').matches;
+    const fixar = (v) => {
+        sidebar.classList.toggle('sidebar-fixada', v && !isMobile());
+        if (!isMobile()) localStorage.setItem(key, v ? '1' : '0');
+    };
+    window.fecharMenuMobile = () => {
+        sidebar.classList.remove('ativo-mobile');
+        overlay?.classList.remove('ativo');
+        document.body.style.removeProperty('overflow');
+    };
+    if (localStorage.getItem(key) === '1') fixar(true);
+    pinBtn?.addEventListener('click', (e) => { e.stopPropagation(); if (!isMobile()) fixar(!sidebar.classList.contains('sidebar-fixada')); });
+    mobileBtn?.addEventListener('click', () => { sidebar.classList.add('ativo-mobile'); overlay?.classList.add('ativo'); document.body.style.overflow = 'hidden'; });
+    sidebar.querySelectorAll('.sidebar-link[href], .sidebar-sublink[href]').forEach(l => l.addEventListener('click', () => { if (isMobile()) window.fecharMenuMobile(); }));
+    window.addEventListener('resize', () => { if (isMobile()) { sidebar.classList.remove('sidebar-fixada'); window.fecharMenuMobile(); } else if (localStorage.getItem(key) === '1') fixar(true); });
+})();
+</script>
+@stack('scripts')
 </body>
 </html>

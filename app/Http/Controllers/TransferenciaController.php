@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\EstoqueService;
+use App\Services\PerfilService;
+use App\Services\SaidaService;
+use App\Services\TransferenciaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class TransferenciaController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        if (!$request->session()->has('usuario_id')) {
-            return redirect()->route('login');
-        }
-
         $transferencias = DB::table('transferencias as t')
             ->join('clinicas as co', 'co.id', '=', 't.clinica_origem_id')
             ->join('clinicas as cd', 'cd.id', '=', 't.clinica_destino_id')
@@ -25,135 +26,127 @@ class TransferenciaController extends Controller
         return view('transferencias.index', compact('transferencias'));
     }
 
-    public function create(Request $request)
+    public function create()
     {
-        if (!$request->session()->has('usuario_id')) {
-            return redirect()->route('login');
+        $centralId = EstoqueService::getCentralId();
+        $perfil = session('perfil', '');
+        $clinicaUsuario = (int) session('clinica_id', 0);
+
+        if (!PerfilService::podeEnviarTransferencia($perfil, $clinicaUsuario, $centralId)) {
+            return redirect()->route('transferencias.transito')->withErrors(['error' => 'Apenas admin ou farmacêutico da Central pode enviar lotes.']);
         }
 
-        $clinicas = DB::table('clinicas')->where('ativo', 1)->orderBy('nome')->get();
+        $clinicas = DB::table('clinicas')->where('ativo', 1)->where('id', '!=', $centralId)->orderBy('nome')->get();
         $medicamentos = DB::table('medicamentos')->where('ativo', 1)->orderBy('nome')->get();
 
-        return view('transferencias.create', compact('clinicas', 'medicamentos'));
+        return view('transferencias.create', compact('clinicas', 'medicamentos', 'centralId'));
     }
 
-    public function store(Request $request)
+    public function buscarMedicamento(Request $request)
     {
-        if (!$request->session()->has('usuario_id')) {
-            return redirect()->route('login');
+        $codigo = trim($request->query('codigo', ''));
+        $id = (int) $request->query('id', 0);
+        $centralId = EstoqueService::getCentralId();
+
+        if ($codigo !== '') {
+            $med = EstoqueService::buscarMedicamentoPorCodigo($codigo);
+        } elseif ($id > 0) {
+            $med = DB::table('medicamentos')->where('id', $id)->where('ativo', 1)->first();
+        } else {
+            return response()->json(['ok' => false, 'erro' => 'Informe código ou id.']);
+        }
+
+        if (!$med) {
+            return response()->json(['ok' => false, 'erro' => 'Medicamento não encontrado.']);
+        }
+
+        return response()->json([
+            'ok' => true,
+            'medicamento' => [
+                'id' => (int) $med->id,
+                'nome' => $med->nome,
+                'dosagem' => $med->dosagem,
+                'unidade' => $med->unidade,
+                'codigo_barras' => $med->codigo_barras,
+                'estoque_central' => EstoqueService::getAtual($centralId, (int) $med->id),
+            ],
+        ]);
+    }
+
+    public function finalizarLote(Request $request)
+    {
+        $centralId = EstoqueService::getCentralId();
+        $perfil = session('perfil', '');
+        $clinicaUsuario = (int) session('clinica_id', 0);
+
+        if (!PerfilService::podeEnviarTransferencia($perfil, $clinicaUsuario, $centralId)) {
+            return back()->withErrors(['error' => 'Sem permissão.']);
         }
 
         $data = $request->validate([
-            'clinica_origem_id' => 'required|integer',
             'clinica_destino_id' => 'required|integer',
-            'medicamento_id' => 'required|integer',
-            'quantidade' => 'required|integer|min:1',
-            'observacao' => 'nullable|max:255',
+            'observacao' => 'nullable|max:500',
+            'itens_json' => 'required|string',
         ]);
 
-        if ((int) $data['clinica_origem_id'] === (int) $data['clinica_destino_id']) {
-            return back()->withErrors(['error' => 'Origem e destino devem ser diferentes.'])->withInput();
+        $itens = json_decode($data['itens_json'], true);
+        if (!is_array($itens)) {
+            return back()->withErrors(['error' => 'Lista de itens inválida.'])->withInput();
         }
 
-        DB::beginTransaction();
         try {
-            $uid = $request->session()->get('usuario_id');
-            $this->subtrairEstoque($data['clinica_origem_id'], $data['medicamento_id'], $data['quantidade']);
+            $id = TransferenciaService::finalizarLote(
+                $centralId,
+                (int) $data['clinica_destino_id'],
+                (int) session('usuario_id'),
+                $data['observacao'] ?? null,
+                $itens
+            );
 
-            $transferenciaId = DB::table('transferencias')->insertGetId([
-                'clinica_origem_id' => $data['clinica_origem_id'],
-                'clinica_destino_id' => $data['clinica_destino_id'],
-                'usuario_envio_id' => $uid,
-                'status' => 'pendente',
-                'observacao' => $data['observacao'] ?? null,
-                'enviado_em' => now(),
-            ]);
-
-            DB::table('transferencia_itens')->insert([
-                'transferencia_id' => $transferenciaId,
-                'medicamento_id' => $data['medicamento_id'],
-                'quantidade_enviada' => $data['quantidade'],
-                'quantidade_recebida' => 0,
-            ]);
-
-            DB::commit();
-
-            return redirect()->route('transferencias.index')->with('success', 'Transferência registrada com sucesso.');
-        } catch (\Throwable $e) {
-            DB::rollBack();
+            return redirect()->route('transferencias.nota', $id)->with('success', 'Lote enviado com sucesso!');
+        } catch (RuntimeException $e) {
             return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
     }
 
-    public function edit(Request $request, string $id)
+    public function cancelar(Request $request, string $id)
     {
-        if (!$request->session()->has('usuario_id')) {
-            return redirect()->route('login');
+        $request->validate(['motivo' => 'required|max:255']);
+
+        try {
+            TransferenciaService::cancelar(
+                (int) $id,
+                (int) session('usuario_id'),
+                $request->input('motivo'),
+                session('perfil', ''),
+                (int) session('clinica_id', 0)
+            );
+
+            return redirect()->route('transferencias.index')->with('success', 'Transferência cancelada.');
+        } catch (RuntimeException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
         }
+    }
 
-        $transferencia = DB::table('transferencias')->where('id', $id)->firstOrFail();
-        $clinicas = DB::table('clinicas')->where('ativo', 1)->orderBy('nome')->get();
-        $medicamentos = DB::table('medicamentos')->where('ativo', 1)->orderBy('nome')->get();
-        $item = DB::table('transferencia_itens')->where('transferencia_id', $id)->first();
+    public function store(Request $request)
+    {
+        return $this->finalizarLote($request);
+    }
 
-        return view('transferencias.edit', compact('transferencia', 'clinicas', 'medicamentos', 'item'));
+    public function edit(string $id)
+    {
+        return redirect()->route('transferencias.index');
     }
 
     public function update(Request $request, string $id)
     {
-        if (!$request->session()->has('usuario_id')) {
-            return redirect()->route('login');
-        }
-
-        $data = $request->validate([
-            'clinica_origem_id' => 'required|integer',
-            'clinica_destino_id' => 'required|integer',
-            'medicamento_id' => 'required|integer',
-            'quantidade' => 'required|integer|min:1',
-            'observacao' => 'nullable|max:255',
-        ]);
-
-        if ((int) $data['clinica_origem_id'] === (int) $data['clinica_destino_id']) {
-            return back()->withErrors(['error' => 'Origem e destino devem ser diferentes.'])->withInput();
-        }
-
-        DB::table('transferencias')->where('id', $id)->update([
-            'clinica_origem_id' => $data['clinica_origem_id'],
-            'clinica_destino_id' => $data['clinica_destino_id'],
-            'observacao' => $data['observacao'] ?? null,
-        ]);
-
-        DB::table('transferencia_itens')->where('transferencia_id', $id)->update([
-            'medicamento_id' => $data['medicamento_id'],
-            'quantidade_enviada' => $data['quantidade'],
-        ]);
-
-        return redirect()->route('transferencias.index')->with('success', 'Transferência atualizada com sucesso.');
+        return redirect()->route('transferencias.index');
     }
 
     public function destroy(Request $request, string $id)
     {
-        if (!$request->session()->has('usuario_id')) {
-            return redirect()->route('login');
-        }
+        $request->validate(['motivo' => 'required|max:255']);
 
-        DB::table('transferencia_itens')->where('transferencia_id', $id)->delete();
-        DB::table('transferencias')->where('id', $id)->delete();
-
-        return redirect()->route('transferencias.index')->with('success', 'Transferência removida com sucesso.');
-    }
-
-    private function subtrairEstoque(int $clinicaId, int $medicamentoId, int $quantidade): void
-    {
-        $estoque = DB::table('estoque')->where('clinica_id', $clinicaId)->where('medicamento_id', $medicamentoId)->first();
-
-        if (!$estoque || (int) $estoque->quantidade < $quantidade) {
-            throw new \RuntimeException('Estoque insuficiente na clínica de origem.');
-        }
-
-        DB::table('estoque')->where('clinica_id', $clinicaId)->where('medicamento_id', $medicamentoId)->update([
-            'quantidade' => (int) $estoque->quantidade - $quantidade,
-            'atualizado_em' => now(),
-        ]);
+        return $this->cancelar($request, $id);
     }
 }

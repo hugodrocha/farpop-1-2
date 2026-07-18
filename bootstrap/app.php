@@ -11,7 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'farpop.auth' => \App\Http\Middleware\FarpopAuth::class,
+            'farpop.perfil' => \App\Http\Middleware\PerfilAutorizado::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
