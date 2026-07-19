@@ -21,7 +21,7 @@
                     <div class="col-md-6"><label class="form-label">Medicamento</label><select name="medicamento_id" class="form-select" required>@foreach($medicamentos as $medicamento)<option value="{{ $medicamento->id }}" {{ $entrada->medicamento_id == $medicamento->id ? 'selected' : '' }}>{{ $medicamento->nome }} {{ $medicamento->dosagem }}</option>@endforeach</select></div>
                     <div class="col-md-3"><label class="form-label">Quantidade</label><input type="number" name="quantidade" class="form-control" value="{{ $entrada->quantidade }}" min="1" required></div>
                     <div class="col-md-3"><label class="form-label">Lote</label><input type="text" name="lote" class="form-control" value="{{ $entrada->lote }}"></div>
-                    <div class="col-md-3"><label class="form-label">Validade</label><input type="text" name="validade" class="form-control" value="{{ $entrada->validade }}"></div>
+                    <div class="col-md-3"><label class="form-label">Validade</label><input type="text" name="validade" class="form-control" placeholder="MM/AAAA" value="{{ \App\Services\ValidadeService::formatar($entrada->validade) }}"></div>
                     <div class="col-md-3"><label class="form-label">Nota fiscal</label><input type="text" name="nota_fiscal" class="form-control" value="{{ $entrada->nota_fiscal }}"></div>
                     <div class="col-md-6"><label class="form-label">Origem</label><input type="text" name="origem" class="form-control" value="{{ $entrada->origem }}"></div>
                     <div class="col-md-6"><label class="form-label">Observação</label><input type="text" name="observacao" class="form-control" value="{{ $entrada->observacao }}"></div>

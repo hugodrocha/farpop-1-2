@@ -55,7 +55,7 @@ class TransferenciaService
                 'medicamento_id' => $medId,
                 'quantidade' => $qtd,
                 'lote' => ($it['lote'] ?? '') !== '' ? $it['lote'] : null,
-                'validade' => ($it['validade'] ?? '') !== '' ? $it['validade'] : null,
+                'validade' => ValidadeService::normalizar($it['validade'] ?? null),
             ];
         }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\AuditoriaService;
 use App\Services\EstoqueService;
+use App\Services\ValidadeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -38,7 +39,11 @@ class EntradaController extends Controller
             'medicamento_id' => 'required|integer',
             'quantidade' => 'required|integer|min:1',
             'lote' => 'nullable|max:80',
-            'validade' => 'nullable|max:20',
+            'validade' => ['nullable', 'max:20', function ($attribute, $value, $fail) {
+                if (!ValidadeService::valida($value)) {
+                    $fail('Validade inválida. Use MM/AAAA ou DD/MM/AAAA.');
+                }
+            }],
             'nota_fiscal' => 'nullable|max:80',
             'origem' => 'nullable|max:160',
             'observacao' => 'nullable|max:255',
@@ -51,7 +56,7 @@ class EntradaController extends Controller
                 'medicamento_id' => $data['medicamento_id'],
                 'quantidade' => $data['quantidade'],
                 'lote' => $data['lote'] ?? null,
-                'validade' => $data['validade'] ?? null,
+                'validade' => ValidadeService::normalizar($data['validade'] ?? null),
                 'nota_fiscal' => $data['nota_fiscal'] ?? null,
                 'origem' => $data['origem'] ?? null,
                 'observacao' => $data['observacao'] ?? null,
@@ -82,7 +87,11 @@ class EntradaController extends Controller
             'medicamento_id' => 'required|integer',
             'quantidade' => 'required|integer|min:1',
             'lote' => 'nullable|max:80',
-            'validade' => 'nullable|max:20',
+            'validade' => ['nullable', 'max:20', function ($attribute, $value, $fail) {
+                if (!ValidadeService::valida($value)) {
+                    $fail('Validade inválida. Use MM/AAAA ou DD/MM/AAAA.');
+                }
+            }],
             'nota_fiscal' => 'nullable|max:80',
             'origem' => 'nullable|max:160',
             'observacao' => 'nullable|max:255',
@@ -93,7 +102,7 @@ class EntradaController extends Controller
             'medicamento_id' => $data['medicamento_id'],
             'quantidade' => $data['quantidade'],
             'lote' => $data['lote'] ?? null,
-            'validade' => $data['validade'] ?? null,
+            'validade' => ValidadeService::normalizar($data['validade'] ?? null),
             'nota_fiscal' => $data['nota_fiscal'] ?? null,
             'origem' => $data['origem'] ?? null,
             'observacao' => $data['observacao'] ?? null,
