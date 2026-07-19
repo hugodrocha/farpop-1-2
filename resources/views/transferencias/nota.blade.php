@@ -9,8 +9,8 @@
         .conteudo-sistema, .main-content { padding: 0 !important; margin: 0 !important; }
         .layout-sistema { display: block !important; }
     }
-    .nota-header { border-bottom: 2px solid #064e3b; padding-bottom: 12px; margin-bottom: 16px; }
-    .nota-titulo { font-size: 1.25rem; font-weight: 700; color: #064e3b; }
+    .nota-header { border-bottom: 2px solid #0f766e; padding-bottom: 12px; margin-bottom: 16px; }
+    .nota-titulo { font-size: 1.25rem; font-weight: 700; color: #0f766e; }
     .barcode-area { text-align: center; margin: 16px 0; }
 </style>
 @endpush

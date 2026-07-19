@@ -10,7 +10,7 @@
             <p class="farpop-page-subtitle">Transferências pendentes de recebimento.</p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
-            @if(in_array(session('perfil'), ['superuser', 'admin', 'gestor', 'farmaceutico']))
+            @if(in_array(session('perfil'), ['superuser', 'admin', 'gestor', 'farmaceutico', 'tecnico']))
                 <a href="{{ route('transferencias.receber') }}" class="btn btn-primary"><i class="fas fa-barcode me-1"></i> Receber nota</a>
             @endif
             <a href="{{ route('transferencias.create') }}" class="btn btn-outline-primary"><i class="fas fa-plus me-1"></i> Enviar lote</a>
@@ -19,6 +19,35 @@
     </div>
 
     @include('partials.flash')
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ route('transferencias.transito') }}" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Número da nota</label>
+                    <input type="text" name="q" class="form-control" value="{{ $busca ?? '' }}" placeholder="Código ou ID da nota">
+                </div>
+                @if($ehAdmin ?? false)
+                    <div class="col-md-4">
+                        <label class="form-label">Destino</label>
+                        <select name="destino_id" class="form-select">
+                            <option value="">Todas as unidades</option>
+                            @foreach($clinicas as $clinica)
+                                <option value="{{ $clinica->id }}" {{ ($destinoId ?? 0) == $clinica->id ? 'selected' : '' }}>{{ $clinica->nome }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+                <div class="col-md-3">
+                    <label class="form-label">Data envio</label>
+                    <input type="date" name="data" class="form-control" value="{{ $data ?? '' }}">
+                </div>
+                <div class="col-md-1 d-flex gap-2">
+                    <button class="btn btn-primary w-100" type="submit"><i class="fas fa-search"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div class="farpop-kpi-grid mb-4" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
         <div class="farpop-kpi-card kpi-3">
@@ -56,7 +85,7 @@
                                     <a href="{{ route('transferencias.nota', $t->id) }}" class="btn btn-sm btn-outline-primary" title="Ver nota">
                                         <i class="fas fa-file-alt"></i>
                                     </a>
-                                    @if(in_array(session('perfil'), ['superuser', 'admin', 'gestor', 'farmaceutico']))
+                                    @if(in_array(session('perfil'), ['superuser', 'admin', 'gestor', 'farmaceutico', 'tecnico']))
                                         <a href="{{ route('transferencias.receber', ['codigo' => $t->codigo_nota ?: $t->id]) }}" class="btn btn-sm btn-primary" title="Receber">
                                             <i class="fas fa-check"></i>
                                         </a>

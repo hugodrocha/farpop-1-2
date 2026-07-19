@@ -41,4 +41,49 @@ class DashboardController extends Controller
             'perfil'
         ));
     }
+
+    public function clinica(Request $request, int $id)
+    {
+        $perfil = session('perfil', '');
+        $clinicaUsuarioId = (int) session('clinica_id', 0);
+
+        if (!DashboardService::podeVerClinica($perfil, $clinicaUsuarioId, $id)) {
+            return redirect()->route('dashboard')->withErrors(['error' => 'Sem permissão para ver esta unidade.']);
+        }
+
+        $totais = DashboardService::dadosClinica($id);
+        if ($totais === []) {
+            abort(404);
+        }
+
+        $graficoEstoque = GraficoService::graficoBarrasSvg(
+            DashboardService::topMedicamentosEstoque($id),
+            ['titulo' => 'Maior estoque por medicamento', 'largura' => 520, 'altura' => 280]
+        );
+
+        $graficoDispensados = GraficoService::graficoBarrasSvg(
+            DashboardService::topMedicamentosDispensados($id),
+            ['titulo' => 'Mais dispensados (30 dias)', 'largura' => 520, 'altura' => 280]
+        );
+
+        $mov = DashboardService::movimentacaoUltimosDias($id);
+        $graficoMovimentacao = GraficoService::graficoBarrasAgrupadasSvg(
+            $mov['labels'],
+            [
+                ['label' => 'Entradas', 'valores' => $mov['entradas'], 'cor' => '#059669'],
+                ['label' => 'Dispensações', 'valores' => $mov['saidas'], 'cor' => '#dc2626'],
+            ],
+            ['titulo' => 'Entradas x dispensações (7 dias)', 'largura' => 520, 'altura' => 260]
+        );
+
+        $ultimasSaidas = DashboardService::ultimasSaidas($id, 10);
+
+        return view('dashboard.clinica', compact(
+            'totais',
+            'graficoEstoque',
+            'graficoDispensados',
+            'graficoMovimentacao',
+            'ultimasSaidas'
+        ));
+    }
 }

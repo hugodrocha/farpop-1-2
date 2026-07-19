@@ -42,9 +42,9 @@
                 <div class="card">
                     <div class="card-header bg-primary"><i class="fas fa-barcode me-2"></i>Leitura</div>
                     <div class="card-body">
-                        <label class="form-label">Código de barras ou código interno</label>
+                        <label class="form-label">Código REMUME ou código de barras</label>
                         <div class="input-group mb-2">
-                            <input type="text" id="inputCodigo" class="form-control form-control-lg" placeholder="Escaneie ou digite..." autocomplete="off">
+                            <input type="text" id="inputCodigo" class="form-control form-control-lg" placeholder="Escaneie ou digite o código..." autocomplete="off">
                             <button type="button" class="btn btn-primary" id="btnBuscar"><i class="fas fa-plus"></i></button>
                         </div>
                         <div id="msgLeitura" class="small text-muted">Posicione o cursor no campo e escaneie o medicamento.</div>
@@ -63,6 +63,7 @@
                             <table class="table table-hover mb-0" id="tabelaItens">
                                 <thead>
                                     <tr>
+                                        <th>Código</th>
                                         <th>Medicamento</th>
                                         <th style="width: 120px;">Estoque Central</th>
                                         <th style="width: 110px;">Quantidade</th>
@@ -71,7 +72,7 @@
                                 </thead>
                                 <tbody id="corpoItens">
                                     <tr id="linhaVazia">
-                                        <td colspan="4" class="text-center text-muted py-4">Nenhum item adicionado. Escaneie um medicamento.</td>
+                                        <td colspan="5" class="text-center text-muted py-4">Nenhum item adicionado. Escaneie um medicamento.</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -108,7 +109,7 @@
     const contadorItens = document.getElementById('contadorItens');
     const btnEnviar = document.getElementById('btnEnviar');
     const itensJson = document.getElementById('itensJson');
-    const urlBuscar = @json(route('transferencias.buscar-med'));
+    const urlBuscar = @json(route('medicamentos.buscar')) + '?clinica_id=' + @json($centralId) + '&q=';
 
     function sincronizarHidden() {
         itensJson.value = JSON.stringify(itens.map(i => ({
@@ -131,6 +132,7 @@
         itens.forEach((item, idx) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
+                <td><code>${esc(item.codigo || '—')}</code></td>
                 <td>
                     <div class="fw-medium">${esc(item.nome)} ${esc(item.dosagem || '')}</div>
                     <div class="text-muted small">${esc(item.unidade || '')}</div>
@@ -192,6 +194,7 @@
             nome: med.nome,
             dosagem: med.dosagem,
             unidade: med.unidade,
+            codigo: med.codigo,
             estoque_central: med.estoque_central ?? med.estoque ?? 0,
             quantidade: med.quantidade || 1
         };
@@ -217,7 +220,7 @@
         msgLeitura.textContent = 'Buscando...';
 
         try {
-            const res = await fetch(urlBuscar + '?codigo=' + encodeURIComponent(codigo), {
+            const res = await fetch(urlBuscar + encodeURIComponent(codigo), {
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
             });
             const data = await res.json();

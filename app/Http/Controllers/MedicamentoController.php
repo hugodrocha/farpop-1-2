@@ -13,9 +13,27 @@ class MedicamentoController extends Controller
             return redirect()->route('login');
         }
 
-        $medicamentos = DB::table('medicamentos')->orderBy('nome')->get();
+        $busca = trim($request->query('q', ''));
 
-        return view('medicamentos.index', compact('medicamentos'));
+        $query = DB::table('medicamentos');
+
+        if ($busca !== '') {
+            $digitos = preg_replace('/\D/', '', $busca);
+            $query->where(function ($q) use ($busca, $digitos) {
+                $q->where('nome', 'like', '%' . $busca . '%')
+                    ->orWhere('principio_ativo', 'like', '%' . $busca . '%')
+                    ->orWhere('codigo', 'like', '%' . $busca . '%')
+                    ->orWhere('codigo_barras', 'like', '%' . $busca . '%');
+                if ($digitos !== '') {
+                    $q->orWhereRaw("REPLACE(REPLACE(REPLACE(codigo, '.', ''), '-', ''), ' ', '') LIKE ?", ['%' . $digitos . '%'])
+                        ->orWhereRaw("REPLACE(codigo_barras, ' ', '') LIKE ?", ['%' . $digitos . '%']);
+                }
+            });
+        }
+
+        $medicamentos = $query->orderBy('nome')->get();
+
+        return view('medicamentos.index', compact('medicamentos', 'busca'));
     }
 
     public function create(Request $request)

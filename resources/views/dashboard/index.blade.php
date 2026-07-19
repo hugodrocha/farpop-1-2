@@ -16,7 +16,7 @@
             </div>
             <div class="d-flex gap-2 flex-wrap">
                 <a href="{{ route('entradas.create') }}" class="btn btn-light btn-sm"><i class="fas fa-arrow-down me-1"></i> Nova entrada</a>
-                <a href="{{ route('saidas.create') }}" class="btn btn-outline-light btn-sm"><i class="fas fa-arrow-up me-1"></i> Nova saída</a>
+                <a href="{{ route('saidas.create') }}" class="btn btn-outline-light btn-sm"><i class="fas fa-pills me-1"></i> Nova dispensação</a>
                 @if($visaoGlobal)
                     <a href="{{ route('transferencias.create') }}" class="btn btn-outline-light btn-sm"><i class="fas fa-truck me-1"></i> Enviar lote</a>
                 @endif
@@ -60,7 +60,8 @@
             <div class="row g-3 mb-4">
                 @foreach($cardsClinicas as $card)
                     <div class="col-md-6 col-lg-4 col-xl-3">
-                        <div class="card-clinica {{ $card->eh_central ? 'eh-central' : '' }} {{ $card->criticos > 0 ? 'tem-critico' : '' }}">
+                        <a href="{{ route('dashboard.clinica', $card->id) }}" class="text-decoration-none">
+                        <div class="card-clinica {{ $card->eh_central ? 'eh-central' : '' }} {{ $card->criticos > 0 ? 'tem-critico' : '' }}" style="cursor:pointer">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <h3 class="h6 mb-0 fw-bold">{{ $card->nome }}</h3>
                                 @if($card->eh_central)
@@ -73,7 +74,7 @@
                                     <strong>{{ number_format($card->estoque, 0, ',', '.') }}</strong>
                                 </div>
                                 <div class="col-6">
-                                    <span class="text-muted d-block">Saídas hoje</span>
+                                    <span class="text-muted d-block">Dispensações hoje</span>
                                     <strong>{{ number_format($card->saidas_hoje, 0, ',', '.') }}</strong>
                                 </div>
                                 <div class="col-12">
@@ -85,6 +86,7 @@
                                 </div>
                             </div>
                         </div>
+                        </a>
                     </div>
                 @endforeach
             </div>

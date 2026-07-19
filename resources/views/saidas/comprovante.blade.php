@@ -9,8 +9,8 @@
         .conteudo-sistema, .main-content { padding: 0 !important; margin: 0 !important; }
         .layout-sistema { display: block !important; }
     }
-    .comprovante-cabecalho { border-bottom: 2px solid #064e3b; padding-bottom: 12px; margin-bottom: 16px; }
-    .comprovante-titulo { font-size: 1.2rem; font-weight: 700; color: #064e3b; }
+    .comprovante-cabecalho { border-bottom: 2px solid #0f766e; padding-bottom: 12px; margin-bottom: 16px; }
+    .comprovante-titulo { font-size: 1.2rem; font-weight: 700; color: #0f766e; }
 </style>
 @endpush
 

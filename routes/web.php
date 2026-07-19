@@ -13,6 +13,7 @@ use App\Http\Controllers\EmTransitoController;
 use App\Http\Controllers\EntradaController;
 use App\Http\Controllers\EstoqueController;
 use App\Http\Controllers\ImportarMedicamentoController;
+use App\Http\Controllers\MedicamentoBuscaController;
 use App\Http\Controllers\MedicamentoController;
 use App\Http\Controllers\NotaTransferenciaController;
 use App\Http\Controllers\PecController;
@@ -33,9 +34,12 @@ Route::middleware('farpop.auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->middleware('farpop.perfil:superuser,admin,gestor,farmaceutico,tecnico')
         ->name('dashboard');
+    Route::get('/dashboard/clinica/{id}', [DashboardController::class, 'clinica'])
+        ->middleware('farpop.perfil:superuser,admin,gestor,farmaceutico,tecnico')
+        ->name('dashboard.clinica');
 
     Route::get('/aqui-tem', [AquitemController::class, 'index'])
-        ->middleware('farpop.perfil:consulta,superuser,admin,farmaceutico')
+        ->middleware('farpop.perfil:consulta,superuser,admin,farmaceutico,tecnico')
         ->name('aqui-tem.index');
 
     Route::get('/trocar-senha', [TrocarSenhaController::class, 'index'])->name('trocar-senha.index');
@@ -58,13 +62,15 @@ Route::middleware('farpop.auth')->group(function () {
         Route::resource('transferencias', TransferenciaController::class)->except(['show']);
 
         Route::get('/pec/cidadao', [PecController::class, 'buscarCidadao'])->name('pec.cidadao');
+        Route::get('/medicamentos/buscar', [MedicamentoBuscaController::class, 'buscar'])->name('medicamentos.buscar');
+        Route::get('/medicamentos/autocomplete', [MedicamentoBuscaController::class, 'autocomplete'])->name('medicamentos.autocomplete');
     });
 
     Route::middleware('farpop.perfil:superuser,admin,gestor')->group(function () {
         Route::resource('clinicas', ClinicaController::class)->except(['show']);
-        Route::resource('medicamentos', MedicamentoController::class)->except(['show']);
         Route::get('/medicamentos/importar', [ImportarMedicamentoController::class, 'index'])->name('medicamentos.importar');
         Route::post('/medicamentos/importar', [ImportarMedicamentoController::class, 'store'])->name('medicamentos.importar.store');
+        Route::resource('medicamentos', MedicamentoController::class)->except(['show']);
     });
 
     Route::middleware('farpop.perfil:superuser,admin,gestor,farmaceutico')->group(function () {

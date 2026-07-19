@@ -26,7 +26,7 @@ class GraficoService
 
         $svg  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '.$largura.' '.$altura.'" width="100%" height="auto" style="font-family:Inter,Segoe UI,sans-serif;">';
         if ($titulo !== "") {
-            $svg .= '<text x="'.((int)($largura/2)).'" y="18" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">'.htmlspecialchars($titulo).'</text>';
+            $svg .= '<text x="'.((int)($largura/2)).'" y="18" text-anchor="middle" font-size="13" font-weight="700" fill="#134e4a">'.htmlspecialchars($titulo).'</text>';
         }
 
         if ($total <= 0) {
@@ -49,7 +49,7 @@ class GraficoService
             $y2 = $cy + $r * sin($anguloFim);
             $largeArc = ($fracao > 0.5) ? 1 : 0;
 
-            $cor = $d["cor"] ?? "#0d9488";
+            $cor = $d["cor"] ?? "#0f766e";
             if (count($dados) === 1) {
                 $svg .= '<circle cx="'.$cx.'" cy="'.$cy.'" r="'.$r.'" fill="'.$cor.'"/>';
             } else {
@@ -77,7 +77,7 @@ class GraficoService
             $lx = $cx + $r + 24;
             $ly = max(20, $cy - count($dados) * 9);
             foreach ($dados as $d) {
-                $cor = $d["cor"] ?? "#0d9488";
+                $cor = $d["cor"] ?? "#0f766e";
                 $label = $d["label"] ?? "";
                 $valor = (float)$d["valor"];
                 $pct = $total > 0 ? round(($valor/$total)*100) : 0;
@@ -113,7 +113,7 @@ class GraficoService
 
         $svg  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '.$largura.' '.$altura.'" width="100%" height="auto" style="font-family:Inter,Segoe UI,sans-serif;">';
         if ($titulo !== "") {
-            $svg .= '<text x="10" y="18" font-size="13" font-weight="700" fill="#0f172a">'.htmlspecialchars($titulo).'</text>';
+            $svg .= '<text x="10" y="18" font-size="13" font-weight="700" fill="#134e4a">'.htmlspecialchars($titulo).'</text>';
         }
         if (empty($dados)) {
             $svg .= '<text x="'.(int)($largura/2).'" y="'.((int)($altura/2)+8).'" text-anchor="middle" font-size="13" fill="#6b7280">Sem dados</text>';
@@ -125,7 +125,7 @@ class GraficoService
         $y = $padTop;
         foreach ($dados as $d) {
             $valor = (float)$d["valor"];
-            $cor = $d["cor"] ?? "#0d9488";
+            $cor = $d["cor"] ?? "#0f766e";
             $label = $d["label"] ?? "";
             $sub = $d["sub"] ?? "";
             $w = max(2, ($valor / $max) * $larguraBarMax);
@@ -133,21 +133,84 @@ class GraficoService
             // label
             $lblExibir = $label;
             if (mb_strlen($lblExibir) > 22) $lblExibir = mb_substr($lblExibir, 0, 20).'…';
-            $svg .= '<text x="'.($larguraLabel-6).'" y="'.($y+14).'" text-anchor="end" font-size="12" font-weight="600" fill="#0f172a">'.htmlspecialchars($lblExibir).'</text>';
+            $svg .= '<text x="'.($larguraLabel-6).'" y="'.($y+14).'" text-anchor="end" font-size="12" font-weight="600" fill="#134e4a">'.htmlspecialchars($lblExibir).'</text>';
             if ($sub !== "") {
                 $subShow = mb_strlen($sub) > 22 ? (mb_substr($sub,0,20).'…') : $sub;
-                $svg .= '<text x="'.($larguraLabel-6).'" y="'.($y+24).'" text-anchor="end" font-size="9" fill="#94a3b8">'.htmlspecialchars($subShow).'</text>';
+                $svg .= '<text x="'.($larguraLabel-6).'" y="'.($y+24).'" text-anchor="end" font-size="9" fill="#5b8a7e">'.htmlspecialchars($subShow).'</text>';
             }
 
             // barra
-            $svg .= '<rect x="'.$larguraLabel.'" y="'.($y+5).'" width="'.$larguraBarMax.'" height="14" rx="3" fill="#f1f5f9"/>';
+            $svg .= '<rect x="'.$larguraLabel.'" y="'.($y+5).'" width="'.$larguraBarMax.'" height="14" rx="3" fill="#ecfdf5"/>';
             $svg .= '<rect x="'.$larguraLabel.'" y="'.($y+5).'" width="'.round($w,2).'" height="14" rx="3" fill="'.$cor.'"/>';
             // valor
-            $svg .= '<text x="'.($larguraLabel + $w + 6).'" y="'.($y+16).'" font-size="11" font-weight="700" fill="#0f172a">'.number_format($valor,0,',','.').'</text>';
+            $svg .= '<text x="'.($larguraLabel + $w + 6).'" y="'.($y+16).'" font-size="11" font-weight="700" fill="#134e4a">'.number_format($valor,0,',','.').'</text>';
 
             $y += $alturaItem;
         }
         $svg .= '</svg>';
+        return $svg;
+    }
+
+    /**
+     * Gráfico de barras agrupadas (entradas x saídas por dia).
+     */
+    public static function graficoBarrasAgrupadasSvg(array $labels, array $series, array $opts = []): string
+    {
+        $largura = $opts['largura'] ?? 520;
+        $altura = $opts['altura'] ?? 260;
+        $titulo = $opts['titulo'] ?? '';
+        $padTop = $titulo !== '' ? 28 : 12;
+        $padBottom = 28;
+        $padLeft = 36;
+        $chartH = $altura - $padTop - $padBottom;
+        $n = count($labels);
+        if ($n === 0) {
+            return self::graficoBarrasSvg([], ['titulo' => $titulo, 'largura' => $largura, 'altura' => $altura]);
+        }
+
+        $max = 1.0;
+        foreach ($series as $s) {
+            foreach ($s['valores'] as $v) {
+                if ((float) $v > $max) {
+                    $max = (float) $v;
+                }
+            }
+        }
+
+        $groupW = ($largura - $padLeft - 20) / max(1, $n);
+        $barW = min(18, ($groupW - 8) / max(1, count($series)));
+
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' . $largura . ' ' . $altura . '" width="100%" height="auto" style="font-family:Inter,Segoe UI,sans-serif;">';
+        if ($titulo !== '') {
+            $svg .= '<text x="' . (int) ($largura / 2) . '" y="18" text-anchor="middle" font-size="13" font-weight="700" fill="#134e4a">' . htmlspecialchars($titulo) . '</text>';
+        }
+
+        $baseY = $padTop + $chartH;
+        $svg .= '<line x1="' . $padLeft . '" y1="' . $baseY . '" x2="' . ($largura - 10) . '" y2="' . $baseY . '" stroke="#e2e8f0"/>';
+
+        foreach ($labels as $i => $label) {
+            $gx = $padLeft + $i * $groupW + 6;
+            foreach ($series as $j => $s) {
+                $valor = (float) ($s['valores'][$i] ?? 0);
+                $h = $max > 0 ? ($valor / $max) * ($chartH - 10) : 0;
+                $x = $gx + $j * ($barW + 2);
+                $y = $baseY - $h;
+                $cor = $s['cor'] ?? '#0f766e';
+                $svg .= '<rect x="' . round($x, 1) . '" y="' . round($y, 1) . '" width="' . round($barW, 1) . '" height="' . round(max(1, $h), 1) . '" rx="2" fill="' . $cor . '"/>';
+            }
+            $svg .= '<text x="' . round($gx + ($barW * count($series)) / 2, 1) . '" y="' . ($baseY + 16) . '" text-anchor="middle" font-size="10" fill="#5b8a7e">' . htmlspecialchars($label) . '</text>';
+        }
+
+        $lx = 12;
+        $ly = $padTop;
+        foreach ($series as $s) {
+            $svg .= '<rect x="' . $lx . '" y="' . $ly . '" width="10" height="10" rx="2" fill="' . ($s['cor'] ?? '#0f766e') . '"/>';
+            $svg .= '<text x="' . ($lx + 14) . '" y="' . ($ly + 9) . '" font-size="10" fill="#134e4a">' . htmlspecialchars($s['label'] ?? '') . '</text>';
+            $ly += 14;
+        }
+
+        $svg .= '</svg>';
+
         return $svg;
     }
 }

@@ -105,7 +105,7 @@ class SaidaController extends Controller
                 (int) session('usuario_id')
             );
 
-            return redirect()->route('saidas.comprovante', $saidaIds[0])->with('success', 'Saída registrada com sucesso!');
+            return redirect()->route('saidas.comprovante', $saidaIds[0])->with('success', 'Dispensação registrada com sucesso!');
         } catch (RuntimeException $e) {
             return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }

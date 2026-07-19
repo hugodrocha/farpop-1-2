@@ -20,7 +20,7 @@
             <span class="badge bg-light text-dark ms-auto" id="statusPoll">Conectado</span>
         </div>
         <div class="card-body d-flex flex-column p-0" style="overflow: hidden;">
-            <div id="areaMensagens" class="flex-grow-1 p-3" style="overflow-y: auto; background: rgba(248,250,252,0.8);">
+            <div id="areaMensagens" class="flex-grow-1 p-3 farpop-surface-mint" style="overflow-y: auto;">
                 <div class="text-center text-muted py-4">Carregando mensagens...</div>
             </div>
             <div class="border-top p-3 bg-white">

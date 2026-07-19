@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Registrar saída')
+@section('title', 'Dispensa para paciente')
 
 @section('content')
 <div class="container-fluid px-0">
     <div class="mb-4">
-        <h1 class="farpop-page-title"><i class="fas fa-arrow-up me-2"></i>Registrar saída</h1>
-        <p class="farpop-page-subtitle">Dispensação de medicamentos para paciente — múltiplos itens por atendimento.</p>
+        <h1 class="farpop-page-title"><i class="fas fa-pills me-2"></i>Dispensa para paciente</h1>
+        <p class="farpop-page-subtitle">Bipe o código REMUME ou código de barras, ou busque pelo nome do medicamento.</p>
     </div>
 
     @include('partials.flash')
@@ -65,10 +65,10 @@
                     <div class="col-md-4">
                         <label class="form-label">Clínica</label>
                         @if($clinicaFixa)
-                            <input type="hidden" name="clinica_id" value="{{ session('clinica_id') }}">
+                            <input type="hidden" name="clinica_id" id="clinicaId" value="{{ session('clinica_id') }}">
                             <input type="text" class="form-control" value="{{ session('clinica_nome') }}" readonly>
                         @else
-                            <select name="clinica_id" class="form-select" required>
+                            <select name="clinica_id" id="clinicaId" class="form-select" required>
                                 @foreach($clinicas as $clinica)
                                     <option value="{{ $clinica->id }}" {{ old('clinica_id', session('clinica_id')) == $clinica->id ? 'selected' : '' }}>{{ $clinica->nome }}</option>
                                 @endforeach
@@ -81,24 +81,37 @@
         </div>
 
         <div class="card mb-4">
-            <div class="card-header bg-primary d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-pills me-2"></i>Medicamentos</span>
-                <button type="button" class="btn btn-sm btn-light" id="btnAddMed"><i class="fas fa-plus me-1"></i> Adicionar linha</button>
-            </div>
-            <div class="card-body p-0">
+            <div class="card-header bg-primary"><i class="fas fa-barcode me-2"></i>Medicamentos</div>
+            <div class="card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-5">
+                        <label class="form-label">Bipar código / código de barras</label>
+                        <input type="text" id="campoBipar" class="form-control form-control-lg" placeholder="Aponte o leitor e pressione Enter" autocomplete="off">
+                        <div id="msgBipar" class="small mt-1 text-muted"></div>
+                    </div>
+                    <div class="col-md-7 position-relative">
+                        <label class="form-label">Ou buscar pelo nome</label>
+                        <input type="text" id="campoNome" class="form-control form-control-lg" placeholder="Digite o nome do medicamento..." autocomplete="off">
+                        <div id="listaAutocomplete" class="list-group position-absolute w-100 shadow-sm d-none" style="z-index:20;max-height:240px;overflow:auto"></div>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
                     <table class="table mb-0" id="tabelaMeds">
                         <thead>
                             <tr>
                                 <th>Medicamento</th>
-                                <th style="width: 120px;">Quantidade</th>
+                                <th>Código</th>
+                                <th style="width:120px">Estoque</th>
+                                <th style="width:120px">Quantidade</th>
                                 <th>Observação</th>
-                                <th style="width: 50px;"></th>
+                                <th style="width:50px"></th>
                             </tr>
                         </thead>
                         <tbody id="corpoMeds"></tbody>
                     </table>
                 </div>
+                <div id="msgLista" class="text-muted small mt-2">Nenhum medicamento adicionado.</div>
             </div>
         </div>
 
@@ -113,50 +126,144 @@
 @push('scripts')
 <script>
 (function () {
-    const medicamentos = @json($medicamentos);
+    const urlBuscar = @json(route('medicamentos.buscar'));
+    const urlAutocomplete = @json(route('medicamentos.autocomplete'));
     const urlPec = @json(route('pec.cidadao'));
     const corpoMeds = document.getElementById('corpoMeds');
-    const oldIds = @json(old('med_id', []));
-    const oldQtds = @json(old('med_qtd', []));
-    const oldObs = @json(old('med_obs', []));
+    const campoBipar = document.getElementById('campoBipar');
+    const campoNome = document.getElementById('campoNome');
+    const listaAutocomplete = document.getElementById('listaAutocomplete');
+    const msgLista = document.getElementById('msgLista');
+    const msgBipar = document.getElementById('msgBipar');
+    const clinicaEl = document.getElementById('clinicaId');
+    const itens = new Map();
 
-    function optionsHtml(selected) {
-        let html = '<option value="">Selecione...</option>';
-        medicamentos.forEach(m => {
-            const sel = selected == m.id ? ' selected' : '';
-            html += `<option value="${m.id}"${sel}>${m.nome} ${m.dosagem || ''} (${m.unidade || ''})</option>`;
+    function clinicaParam() {
+        const id = clinicaEl ? clinicaEl.value : '';
+        return id ? '&clinica_id=' + encodeURIComponent(id) : '';
+    }
+
+    function atualizarMsgLista() {
+        msgLista.textContent = itens.size ? itens.size + ' medicamento(s) na lista.' : 'Nenhum medicamento adicionado.';
+    }
+
+    function renderTabela() {
+        corpoMeds.innerHTML = '';
+        itens.forEach((item) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="fw-medium">${item.label}</td>
+                <td><code>${item.codigo || '—'}</code></td>
+                <td><span class="badge bg-secondary">${item.estoque ?? '—'}</span></td>
+                <td>
+                    <input type="hidden" name="med_id[]" value="${item.id}">
+                    <input type="number" name="med_qtd[]" class="form-control form-control-sm" min="1" value="${item.qtd}" required>
+                </td>
+                <td><input type="text" name="med_obs[]" class="form-control form-control-sm" value="${item.obs || ''}"></td>
+                <td><button type="button" class="btn btn-sm btn-outline-danger btn-remover"><i class="fas fa-trash"></i></button></td>`;
+            tr.querySelector('.btn-remover').addEventListener('click', () => {
+                itens.delete(item.id);
+                renderTabela();
+                atualizarMsgLista();
+            });
+            tr.querySelector('input[name="med_qtd[]"]').addEventListener('change', (e) => {
+                item.qtd = Math.max(1, parseInt(e.target.value || '1', 10));
+            });
+            tr.querySelector('input[name="med_obs[]"]').addEventListener('input', (e) => {
+                item.obs = e.target.value;
+            });
+            corpoMeds.appendChild(tr);
         });
-        return html;
+        atualizarMsgLista();
     }
 
-    function addLinha(medId, qtd, obs) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>
-                <select name="med_id[]" class="form-select form-select-sm" required>${optionsHtml(medId || '')}</select>
-            </td>
-            <td>
-                <input type="number" name="med_qtd[]" class="form-control form-control-sm" min="1" value="${qtd || 1}" required>
-            </td>
-            <td>
-                <input type="text" name="med_obs[]" class="form-control form-control-sm" value="${obs || ''}">
-            </td>
-            <td>
-                <button type="button" class="btn btn-sm btn-outline-danger btn-remover"><i class="fas fa-trash"></i></button>
-            </td>`;
-        tr.querySelector('.btn-remover').addEventListener('click', () => {
-            if (corpoMeds.children.length > 1) tr.remove();
+    function adicionarMedicamento(med) {
+        if (itens.has(med.id)) {
+            const atual = itens.get(med.id);
+            atual.qtd += 1;
+            itens.set(med.id, atual);
+            msgBipar.className = 'small mt-1 text-success';
+            msgBipar.textContent = 'Quantidade incrementada: ' + med.label;
+        } else {
+            itens.set(med.id, {
+                id: med.id,
+                label: med.label,
+                codigo: med.codigo,
+                estoque: med.estoque,
+                qtd: 1,
+                obs: ''
+            });
+            msgBipar.className = 'small mt-1 text-success';
+            msgBipar.textContent = 'Adicionado: ' + med.label;
+        }
+        renderTabela();
+        campoBipar.value = '';
+        campoBipar.focus();
+    }
+
+    async function buscarMedicamento(termo) {
+        const res = await fetch(urlBuscar + '?q=' + encodeURIComponent(termo) + clinicaParam(), {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
         });
-        corpoMeds.appendChild(tr);
+        return res.json();
     }
 
-    if (oldIds.length) {
-        oldIds.forEach((id, i) => addLinha(id, oldQtds[i], oldObs[i]));
-    } else {
-        addLinha('', 1, '');
-    }
+    campoBipar.addEventListener('keydown', async (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const termo = campoBipar.value.trim();
+        if (!termo) return;
+        msgBipar.className = 'small mt-1 text-muted';
+        msgBipar.textContent = 'Buscando...';
+        try {
+            const data = await buscarMedicamento(termo);
+            if (!data.ok) {
+                msgBipar.className = 'small mt-1 text-danger';
+                msgBipar.textContent = data.erro || 'Medicamento não encontrado.';
+                return;
+            }
+            adicionarMedicamento(data.medicamento);
+        } catch (err) {
+            msgBipar.className = 'small mt-1 text-danger';
+            msgBipar.textContent = 'Erro ao buscar medicamento.';
+        }
+    });
 
-    document.getElementById('btnAddMed').addEventListener('click', () => addLinha('', 1, ''));
+    let timerAuto = null;
+    campoNome.addEventListener('input', () => {
+        clearTimeout(timerAuto);
+        const termo = campoNome.value.trim();
+        if (termo.length < 2) {
+            listaAutocomplete.classList.add('d-none');
+            return;
+        }
+        timerAuto = setTimeout(async () => {
+            const res = await fetch(urlAutocomplete + '?q=' + encodeURIComponent(termo) + clinicaParam(), {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await res.json();
+            listaAutocomplete.innerHTML = '';
+            (data.itens || []).forEach((med) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'list-group-item list-group-item-action';
+                btn.innerHTML = `<strong>${med.label}</strong><br><small class="text-muted">Código: ${med.codigo || '—'} | Estoque: ${med.estoque ?? '—'}</small>`;
+                btn.addEventListener('click', () => {
+                    adicionarMedicamento(med);
+                    campoNome.value = '';
+                    listaAutocomplete.classList.add('d-none');
+                });
+                listaAutocomplete.appendChild(btn);
+            });
+            listaAutocomplete.classList.toggle('d-none', !(data.itens || []).length);
+        }, 250);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!campoNome.contains(e.target) && !listaAutocomplete.contains(e.target)) {
+            listaAutocomplete.classList.add('d-none');
+        }
+    });
 
     document.getElementById('btnPec').addEventListener('click', async function () {
         const cpf = document.getElementById('pacienteCpf').value.replace(/\D/g, '');
@@ -191,6 +298,8 @@
             msg.textContent = 'Erro ao consultar PEC.';
         }
     });
+
+    campoBipar.focus();
 })();
 </script>
 @endpush

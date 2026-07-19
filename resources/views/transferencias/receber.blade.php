@@ -33,6 +33,7 @@
         <form method="POST" action="{{ route('transferencias.receber.confirmar') }}" id="formReceber">
             @csrf
             <input type="hidden" name="transferencia_id" id="transferenciaId">
+            <input type="hidden" name="tipo_recebimento" id="tipoRecebimento" value="ok">
             <input type="hidden" name="recebidas_json" id="recebidasJson">
 
             <div class="card mb-4">
@@ -93,12 +94,21 @@
                 </div>
             </div>
 
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary btn-lg">
-                    <i class="fas fa-check me-1"></i> Confirmar recebimento
+            <div class="d-flex gap-2 flex-wrap">
+                <button type="submit" class="btn btn-success btn-lg" data-tipo="ok">
+                    <i class="fas fa-check-double me-1"></i> Recebimento OK
+                </button>
+                <button type="submit" class="btn btn-warning btn-lg" data-tipo="parcial">
+                    <i class="fas fa-adjust me-1"></i> Recebimento parcial
+                </button>
+                <button type="submit" class="btn btn-danger btn-lg" data-tipo="nao_recebido">
+                    <i class="fas fa-times me-1"></i> Não recebido
                 </button>
                 <a href="{{ route('transferencias.transito') }}" class="btn btn-outline-secondary btn-lg">Cancelar</a>
             </div>
+            <p class="text-muted small mt-2 mb-0">
+                <strong>OK:</strong> confirma tudo enviado. <strong>Parcial:</strong> ajuste as quantidades recebidas abaixo. <strong>Não recebido:</strong> devolve tudo à Central.
+            </p>
         </form>
     </div>
 </div>
@@ -192,12 +202,28 @@
         }
     });
 
-    document.getElementById('formReceber').addEventListener('submit', function () {
+    document.getElementById('formReceber').addEventListener('submit', function (e) {
         const recebidas = {};
         corpoItens.querySelectorAll('.qtd-recebida').forEach(inp => {
             recebidas[inp.dataset.itemId] = parseInt(inp.value, 10) || 0;
         });
         recebidasJson.value = JSON.stringify(recebidas);
+    });
+
+    document.querySelectorAll('#formReceber button[type="submit"]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.getElementById('tipoRecebimento').value = this.dataset.tipo || 'ok';
+            if (this.dataset.tipo === 'ok') {
+                corpoItens.querySelectorAll('.qtd-recebida').forEach(inp => {
+                    inp.value = inp.max;
+                });
+            }
+            if (this.dataset.tipo === 'nao_recebido') {
+                corpoItens.querySelectorAll('.qtd-recebida').forEach(inp => {
+                    inp.value = 0;
+                });
+            }
+        });
     });
 
     @if(!empty($codigo))

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\MedicamentoBuscaService;
 use App\Services\EstoqueService;
 use App\Services\PerfilService;
 use App\Services\SaidaService;
@@ -49,7 +50,7 @@ class TransferenciaController extends Controller
         $centralId = EstoqueService::getCentralId();
 
         if ($codigo !== '') {
-            $med = EstoqueService::buscarMedicamentoPorCodigo($codigo);
+            $med = MedicamentoBuscaService::buscarPorCodigoOuBarras($codigo);
         } elseif ($id > 0) {
             $med = DB::table('medicamentos')->where('id', $id)->where('ativo', 1)->first();
         } else {
@@ -67,6 +68,7 @@ class TransferenciaController extends Controller
                 'nome' => $med->nome,
                 'dosagem' => $med->dosagem,
                 'unidade' => $med->unidade,
+                'codigo' => $med->codigo,
                 'codigo_barras' => $med->codigo_barras,
                 'estoque_central' => EstoqueService::getAtual($centralId, (int) $med->id),
             ],

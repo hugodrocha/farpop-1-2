@@ -62,24 +62,24 @@ class AvisoBarraService
     {
         $mapa = [
             'info' => [
-                'bg' => 'linear-gradient(135deg,#3b82f6,#1d4ed8)',
+                'bg' => 'linear-gradient(135deg,#0f766e,#14b8a6)',
                 'label' => 'ℹ️ INFO',
-                'border' => '#1e40af',
+                'border' => '#064e3b',
             ],
             'aviso' => [
-                'bg' => 'linear-gradient(135deg,#0d9488,#0f766e)',
+                'bg' => 'linear-gradient(135deg,#064e3b,#0f766e)',
                 'label' => '📣 AVISO',
-                'border' => '#0f766e',
+                'border' => '#022c22',
             ],
             'alerta' => [
-                'bg' => 'linear-gradient(135deg,#f59e0b,#d97706)',
+                'bg' => 'linear-gradient(135deg,#d97706,#b45309)',
                 'label' => '⚠️ ALERTA',
-                'border' => '#b45309',
+                'border' => '#92400e',
             ],
             'urgente' => [
-                'bg' => 'linear-gradient(135deg,#dc2626,#991b1b)',
+                'bg' => 'linear-gradient(135deg,#c53030,#9b2c2c)',
                 'label' => '🚨 URGENTE',
-                'border' => '#7f1d1d',
+                'border' => '#7a2222',
             ],
         ];
 

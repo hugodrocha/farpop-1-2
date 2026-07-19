@@ -99,17 +99,7 @@ class EstoqueService
 
     public static function buscarMedicamentoPorCodigo(string $codigo): ?object
     {
-        $codigo = trim($codigo);
-        if ($codigo === '') {
-            return null;
-        }
-
-        return DB::table('medicamentos')
-            ->where('ativo', 1)
-            ->where(function ($q) use ($codigo) {
-                $q->where('codigo_barras', $codigo)->orWhere('codigo', $codigo);
-            })
-            ->first();
+        return MedicamentoBuscaService::buscarPorCodigoOuBarras($codigo);
     }
 
     public static function zerarTudo(): void

@@ -27,6 +27,7 @@
     @if($logado)
         <div class="menu-overlay" id="menuOverlay" onclick="fecharMenuMobile()"></div>
         <aside class="sidebar-sistema" id="sidebarSistema">
+            <div class="sidebar-deco-cruz" aria-hidden="true"></div>
             <div class="sidebar-topo">
                 <button type="button" class="sidebar-pin-btn" id="btnFixarSidebar" title="Fixar menu"><i class="fas fa-thumbtack"></i></button>
                 <div class="sidebar-logo-area">
@@ -78,7 +79,7 @@
                     <div id="menuEstoque" class="sidebar-submenu {{ request()->routeIs('estoque.*','entradas.*','saidas.*','transferencias.*') ? 'show' : '' }}">
                         <a href="{{ route('estoque.index') }}" class="sidebar-sublink {{ request()->routeIs('estoque.*') ? 'active' : '' }}"><i class="fas fa-boxes sidebar-icone"></i><span class="sidebar-label">Consultar estoque</span></a>
                         <a href="{{ route('entradas.index') }}" class="sidebar-sublink {{ request()->routeIs('entradas.*') ? 'active' : '' }}"><i class="fas fa-arrow-down sidebar-icone"></i><span class="sidebar-label">Entradas</span></a>
-                        <a href="{{ route('saidas.index') }}" class="sidebar-sublink {{ request()->routeIs('saidas.*') ? 'active' : '' }}"><i class="fas fa-arrow-up sidebar-icone"></i><span class="sidebar-label">Saídas</span></a>
+                        <a href="{{ route('saidas.index') }}" class="sidebar-sublink {{ request()->routeIs('saidas.*') ? 'active' : '' }}"><i class="fas fa-pills sidebar-icone"></i><span class="sidebar-label">Dispensa de Medicamentos</span></a>
                         <a href="{{ route('transferencias.create') }}" class="sidebar-sublink {{ request()->routeIs('transferencias.create') ? 'active' : '' }}"><i class="fas fa-dolly sidebar-icone"></i><span class="sidebar-label">Enviar lote</span></a>
                         <a href="{{ route('transferencias.receber') }}" class="sidebar-sublink {{ request()->routeIs('transferencias.receber*') ? 'active' : '' }}"><i class="fas fa-barcode sidebar-icone"></i><span class="sidebar-label">Receber lote</span></a>
                         <a href="{{ route('transferencias.transito') }}" class="sidebar-sublink {{ request()->routeIs('transferencias.transito') ? 'active' : '' }}"><i class="fas fa-truck sidebar-icone"></i><span class="sidebar-label">Em trânsito</span></a>

@@ -13,7 +13,7 @@ class ReceberTransferenciaController extends Controller
     public function index(Request $request)
     {
         $perfil = session('perfil', '');
-        if (!PerfilService::ehAdmin($perfil) && $perfil !== 'farmaceutico') {
+        if (!in_array($perfil, ['superuser', 'admin', 'gestor', 'farmaceutico', 'tecnico'], true)) {
             return redirect()->route('transferencias.transito');
         }
 
@@ -46,7 +46,7 @@ class ReceberTransferenciaController extends Controller
 
         $ehAdmin = PerfilService::ehAdmin(session('perfil', ''));
         $clinicaUsuario = (int) session('clinica_id', 0);
-        $podeReceber = $ehAdmin || (session('perfil') === 'farmaceutico' && $clinicaUsuario === (int) $t->clinica_destino_id);
+        $podeReceber = $ehAdmin || (in_array(session('perfil'), ['farmaceutico', 'tecnico'], true) && $clinicaUsuario === (int) $t->clinica_destino_id);
 
         if (!$podeReceber) {
             return response()->json(['ok' => false, 'erro' => 'Esta nota é destinada a outra clínica.']);
@@ -82,6 +82,7 @@ class ReceberTransferenciaController extends Controller
     {
         $data = $request->validate([
             'transferencia_id' => 'required|integer',
+            'tipo_recebimento' => 'required|in:ok,parcial,nao_recebido',
             'observacao_recebimento' => 'nullable|max:500',
             'recebidas_json' => 'required|string',
         ]);
@@ -98,7 +99,8 @@ class ReceberTransferenciaController extends Controller
                 (int) session('clinica_id', 0),
                 PerfilService::ehAdmin(session('perfil', '')),
                 $recebidas,
-                $data['observacao_recebimento'] ?? null
+                $data['observacao_recebimento'] ?? null,
+                $data['tipo_recebimento']
             );
 
             return redirect()->route('transferencias.receber')->with('success', 'Recebimento confirmado com sucesso!');

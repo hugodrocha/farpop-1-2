@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
-@section('title', 'Saídas')
+@section('title', 'Dispensa de Medicamentos')
 
 @section('content')
 <div class="container-fluid px-0">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
         <div>
-            <h1 class="farpop-page-title"><i class="fas fa-arrow-up me-2"></i>Saídas</h1>
-            <p class="farpop-page-subtitle">Dispensações de medicamentos para pacientes.</p>
+            <h1 class="farpop-page-title"><i class="fas fa-pills me-2"></i>Dispensa de Medicamentos</h1>
+            <p class="farpop-page-subtitle">Histórico de dispensações para pacientes.</p>
         </div>
-        <a href="{{ route('saidas.create') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i> Nova saída</a>
+        <a href="{{ route('saidas.create') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i> Nova dispensação</a>
     </div>
 
     @include('partials.flash')
@@ -37,11 +37,11 @@
                                 <td>{{ $saida->medicamento_nome }} {{ $saida->dosagem }}</td>
                                 <td><span class="badge bg-warning text-dark">{{ $saida->quantidade }}</span></td>
                                 <td class="text-end">
-                                    <a href="{{ route('saidas.edit', $saida->id) }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit"></i></a>
+                                    <a href="{{ route('saidas.comprovante', $saida->id) }}" class="btn btn-sm btn-outline-secondary" title="Comprovante"><i class="fas fa-receipt"></i></a>
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="6" class="text-center text-muted py-4">Nenhuma saída registrada.</td></tr>
+                            <tr><td colspan="6" class="text-center text-muted py-4">Nenhuma dispensação registrada.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

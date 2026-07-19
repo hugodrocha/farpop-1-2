@@ -8,7 +8,7 @@
         }
         $marquee = implode('', $textos);
         $primeiro = $farpopAvisos[0];
-        $bg = \App\Services\AvisoBarraService::corPrioridadeAviso($primeiro->prioridade ?? 'info')['bg'] ?? 'linear-gradient(135deg,#0f766e,#14b8a6)';
+        $bg = \App\Services\AvisoBarraService::corPrioridadeAviso($primeiro->prioridade ?? 'info')['bg'] ?? 'linear-gradient(135deg,#064e3b,#14b8a6)';
     @endphp
     <div class="farpop-barra-avisos" style="background: {{ $bg }}; color: #fff;">
         <div class="farpop-barra-marquee px-3 py-2 small fw-medium">

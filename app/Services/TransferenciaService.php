@@ -99,63 +99,91 @@ class TransferenciaService
         });
     }
 
-    public static function confirmarRecebimento(int $transferenciaId, int $usuarioId, int $clinicaUsuarioId, bool $ehAdmin, array $recebidas, ?string $obsRec): void
+    public static function confirmarRecebimento(int $transferenciaId, int $usuarioId, int $clinicaUsuarioId, bool $ehAdmin, array $recebidas, ?string $obsRec, string $tipoRecebimento = 'ok'): void
     {
-        DB::transaction(function () use ($transferenciaId, $usuarioId, $clinicaUsuarioId, $ehAdmin, $recebidas, $obsRec) {
+        DB::transaction(function () use ($transferenciaId, $usuarioId, $clinicaUsuarioId, $ehAdmin, $recebidas, $obsRec, $tipoRecebimento) {
             $t = DB::table('transferencias')->where('id', $transferenciaId)->where('status', 'pendente')->first();
             if (!$t) {
                 throw new RuntimeException('Nota não está mais pendente.');
             }
 
-            $podeReceber = $ehAdmin || ((session('perfil') === 'farmaceutico') && $clinicaUsuarioId === (int) $t->clinica_destino_id);
+            $podeReceber = $ehAdmin || (in_array(session('perfil'), ['farmaceutico', 'tecnico'], true) && $clinicaUsuarioId === (int) $t->clinica_destino_id);
             if (!$podeReceber) {
                 throw new RuntimeException('Sem permissão para receber esta nota.');
             }
 
+            $origemId = (int) $t->clinica_origem_id;
             $destinoId = (int) $t->clinica_destino_id;
-            $itens = DB::table('transferencia_itens')->where('transferencia_id', $transferenciaId)->get()->keyBy('id');
+            $itens = DB::table('transferencia_itens')->where('transferencia_id', $transferenciaId)->get();
 
-            foreach ($recebidas as $itemId => $qtdRec) {
-                $qtdRec = (int) $qtdRec;
-                if ($qtdRec <= 0 || !isset($itens[$itemId])) {
-                    continue;
-                }
-                $it = $itens[$itemId];
-                if ($qtdRec > (int) $it->quantidade_enviada) {
-                    $qtdRec = (int) $it->quantidade_enviada;
+            $totalEnviado = 0;
+            $totalRecebido = 0;
+
+            foreach ($itens as $it) {
+                $qtdEnviada = (int) $it->quantidade_enviada;
+                $totalEnviado += $qtdEnviada;
+
+                if ($tipoRecebimento === 'nao_recebido') {
+                    $qtdRec = 0;
+                } elseif ($tipoRecebimento === 'ok') {
+                    $qtdRec = $qtdEnviada;
+                } else {
+                    $qtdRec = (int) ($recebidas[$it->id] ?? 0);
                 }
 
-                DB::table('transferencia_itens')->where('id', $itemId)->update([
+                $qtdRec = max(0, min($qtdRec, $qtdEnviada));
+                $totalRecebido += $qtdRec;
+                $devolver = $qtdEnviada - $qtdRec;
+
+                DB::table('transferencia_itens')->where('id', $it->id)->update([
                     'quantidade_recebida' => $qtdRec,
                     'recebido_em' => now(),
                 ]);
 
-                EstoqueService::somarOuCriar($destinoId, (int) $it->medicamento_id, $qtdRec);
+                if ($qtdRec > 0) {
+                    EstoqueService::somarOuCriar($destinoId, (int) $it->medicamento_id, $qtdRec);
 
-                $entradaId = DB::table('entradas_medicamentos')->insertGetId([
-                    'clinica_id' => $destinoId,
-                    'medicamento_id' => $it->medicamento_id,
-                    'quantidade' => $qtdRec,
-                    'lote' => $it->lote,
-                    'validade' => $it->validade,
-                    'origem' => 'Transferência nota ' . ($t->codigo_nota ?? "#{$transferenciaId}"),
-                    'observacao' => 'Recebido via transferência',
-                    'usuario_id' => $usuarioId,
-                    'data_entrada' => now(),
-                ]);
+                    DB::table('entradas_medicamentos')->insert([
+                        'clinica_id' => $destinoId,
+                        'medicamento_id' => $it->medicamento_id,
+                        'quantidade' => $qtdRec,
+                        'lote' => $it->lote,
+                        'validade' => $it->validade,
+                        'origem' => 'Transferência nota ' . ($t->codigo_nota ?? "#{$transferenciaId}"),
+                        'observacao' => 'Recebido via transferência',
+                        'usuario_id' => $usuarioId,
+                        'data_entrada' => now(),
+                    ]);
+                }
+
+                if ($devolver > 0) {
+                    EstoqueService::somarOuCriar($origemId, (int) $it->medicamento_id, $devolver);
+                }
             }
 
+            $status = match (true) {
+                $tipoRecebimento === 'nao_recebido' || $totalRecebido === 0 => 'nao_recebida',
+                $totalRecebido < $totalEnviado => 'recebida_parcial',
+                default => 'recebida',
+            };
+
+            $rotulo = match ($status) {
+                'recebida_parcial' => '[Recebimento parcial]',
+                'nao_recebida' => '[Não recebido]',
+                default => '[Recebimento OK]',
+            };
+
             DB::table('transferencias')->where('id', $transferenciaId)->update([
-                'status' => 'recebida',
+                'status' => $status,
                 'usuario_recebimento_id' => $usuarioId,
                 'recebido_em' => now(),
-                'observacao_recebimento' => $obsRec,
+                'observacao_recebimento' => trim($rotulo . ' ' . ($obsRec ?? '')),
             ]);
 
             AuditoriaService::registrar(
                 'TRANSFERENCIA_RECEBIDA',
                 'nota ' . ($t->codigo_nota ?? "#{$transferenciaId}"),
-                'Recebimento confirmado na clínica #' . $destinoId
+                "{$rotulo} — clínica destino #{$destinoId} ({$totalRecebido}/{$totalEnviado} un.)"
             );
         });
     }

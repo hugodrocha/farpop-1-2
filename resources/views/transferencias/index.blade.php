@@ -40,7 +40,13 @@
                                     @if($transferencia->status === 'pendente')
                                         <span class="badge bg-warning text-dark">Pendente</span>
                                     @elseif($transferencia->status === 'recebida')
-                                        <span class="badge bg-success">Recebida</span>
+                                        <span class="badge bg-success">Recebida OK</span>
+                                    @elseif($transferencia->status === 'recebida_parcial')
+                                        <span class="badge bg-info text-dark">Parcial</span>
+                                    @elseif($transferencia->status === 'nao_recebida')
+                                        <span class="badge bg-danger">Não recebida</span>
+                                    @elseif($transferencia->status === 'cancelada')
+                                        <span class="badge bg-secondary">Cancelada</span>
                                     @else
                                         <span class="badge bg-secondary">{{ $transferencia->status }}</span>
                                     @endif
