@@ -74,6 +74,11 @@ class PerfilService
         return false;
     }
 
+    public static function podeConfigurarChatUsuario(string $perfil): bool
+    {
+        return in_array($perfil, ['superuser', 'admin'], true);
+    }
+
     public static function podeCancelarTransferencia(string $perfil, int $clinicaUsuarioId, ?int $centralId): bool
     {
         if (in_array($perfil, ['superuser', 'admin'], true)) {

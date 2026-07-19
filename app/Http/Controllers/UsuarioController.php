@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ChatSchemaService;
+use App\Services\PerfilService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -51,9 +53,12 @@ class UsuarioController extends Controller
             'bloqueado' => 'boolean',
         ]);
 
+        ChatSchemaService::garantir();
+
         DB::table('usuarios')->insert([
             ...$data,
             'senha' => password_hash($data['senha'], PASSWORD_DEFAULT),
+            'chat_habilitado' => 1,
             'tentativas_erradas' => 0,
             'criado_em' => now(),
             'atualizado_em' => now(),
@@ -106,6 +111,12 @@ class UsuarioController extends Controller
 
         if (!empty($data['senha'])) {
             $payload['senha'] = password_hash($data['senha'], PASSWORD_DEFAULT);
+        }
+
+        $perfilLogado = (string) $request->session()->get('perfil', '');
+        if (PerfilService::podeConfigurarChatUsuario($perfilLogado)) {
+            ChatSchemaService::garantir();
+            $payload['chat_habilitado'] = $request->boolean('chat_habilitado') ? 1 : 0;
         }
 
         DB::table('usuarios')->where('id', $id)->update($payload);

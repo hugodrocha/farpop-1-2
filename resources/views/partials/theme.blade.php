@@ -315,20 +315,97 @@
     @keyframes farpop-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
     /* Chat flutuante */
+    .farpop-chat-root { position: fixed; z-index: 1050; inset: 0; pointer-events: none; }
     .farpop-chat-fab {
-        position: fixed; bottom: 58px; right: 22px; z-index: 1050;
+        position: fixed; bottom: 58px; right: 22px; z-index: 1051;
         width: 56px; height: 56px; border-radius: 50%; border: none;
         background: var(--gradiente-botao); color: #fff; font-size: 22px;
-        box-shadow: 0 8px 28px rgba(15, 118, 110, 0.38); cursor: pointer;
-        transition: transform 0.15s;
+        box-shadow: 0 8px 28px rgba(15, 118, 110, 0.38); cursor: grab;
+        transition: transform 0.15s; pointer-events: auto; touch-action: none;
     }
+    .farpop-chat-fab:active { cursor: grabbing; }
     .farpop-chat-fab:hover { transform: scale(1.06); }
+    .farpop-chat-fab-pulse { animation: farpop-chat-pulse 1.4s ease-in-out infinite; }
+    @keyframes farpop-chat-pulse {
+        0%, 100% { box-shadow: 0 8px 28px rgba(15, 118, 110, 0.38); }
+        50% { box-shadow: 0 8px 32px rgba(220, 38, 38, 0.55), 0 0 0 8px rgba(220, 38, 38, 0.12); }
+    }
     .farpop-chat-badge {
         position: absolute; top: -2px; right: -2px; min-width: 20px; height: 20px;
         background: linear-gradient(135deg, #dc2626, #d97706); border-radius: 999px;
         font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;
-        border: 2px solid #fff;
+        border: 2px solid #fff; pointer-events: none;
     }
+    .farpop-chat-panel {
+        position: fixed; width: 380px; max-width: calc(100vw - 16px); height: 480px; max-height: calc(100vh - 80px);
+        background: #fff; border-radius: 16px; box-shadow: 0 16px 48px rgba(6, 78, 59, 0.22);
+        display: flex; flex-direction: column; overflow: hidden; z-index: 1052; pointer-events: auto;
+        border: 1px solid rgba(15, 118, 110, 0.12);
+    }
+    .farpop-chat-panel-header {
+        display: flex; align-items: center; justify-content: space-between; gap: 8px;
+        padding: 10px 12px; background: var(--gradiente-sidebar); color: #fff; font-weight: 600; font-size: 14px;
+    }
+    .farpop-chat-panel-body { display: flex; flex: 1; min-height: 0; }
+    .farpop-chat-sidebar {
+        width: 42%; min-width: 130px; border-right: 1px solid #e5e7eb;
+        overflow-y: auto; background: #f8fafc; font-size: 12px;
+    }
+    .farpop-chat-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .farpop-chat-secao-titulo {
+        padding: 6px 10px 4px; font-size: 10px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.04em; color: #059669; background: #ecfdf5;
+    }
+    .farpop-chat-secao-offline { color: #b91c1c; background: #fef2f2; }
+    .farpop-chat-contatos { padding: 2px 0 6px; }
+    .farpop-chat-contato-item {
+        display: flex; align-items: center; gap: 6px; width: 100%; border: none; background: transparent;
+        padding: 6px 8px; text-align: left; cursor: pointer; position: relative;
+    }
+    .farpop-chat-contato-item:hover, .farpop-chat-contato-item.ativo { background: rgba(15, 118, 110, 0.08); }
+    .farpop-chat-contato-item.ativo { border-left: 3px solid var(--farpop-verde-medio, #0f766e); }
+    .farpop-chat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .farpop-chat-dot-online { background: #22c55e; box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25); }
+    .farpop-chat-dot-offline { background: #ef4444; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); }
+    .farpop-chat-grupo-ico { width: 18px; text-align: center; color: #0f766e; flex-shrink: 0; }
+    .farpop-chat-contato-info { flex: 1; min-width: 0; }
+    .farpop-chat-contato-nome { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .farpop-chat-contato-setor { display: block; font-size: 10px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .farpop-chat-contato-badge {
+        min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px;
+        background: #dc2626; color: #fff; font-size: 9px; font-weight: 700;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .farpop-chat-sem-contatos { padding: 4px 10px; color: #94a3b8; font-size: 11px; }
+    .farpop-chat-conversa-titulo {
+        padding: 8px 10px; font-weight: 600; font-size: 13px; border-bottom: 1px solid #e5e7eb;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .farpop-chat-mensagens { flex: 1; overflow-y: auto; padding: 10px; background: linear-gradient(180deg, #f0fdfa 0%, #fff 100%); }
+    .farpop-chat-vazio { text-align: center; color: #94a3b8; font-size: 12px; padding: 24px 8px; }
+    .farpop-chat-msg { margin-bottom: 8px; display: flex; }
+    .farpop-chat-msg.eu { justify-content: flex-end; }
+    .farpop-chat-msg-bolha {
+        max-width: 88%; padding: 6px 10px; border-radius: 12px; font-size: 12px; line-height: 1.4;
+    }
+    .farpop-chat-msg.eu .farpop-chat-msg-bolha { background: var(--gradiente-botao); color: #fff; border-bottom-right-radius: 4px; }
+    .farpop-chat-msg.outro .farpop-chat-msg-bolha { background: #fff; border: 1px solid #e2e8f0; border-bottom-left-radius: 4px; }
+    .farpop-chat-msg-autor { font-size: 10px; font-weight: 700; color: #0f766e; margin-bottom: 2px; }
+    .farpop-chat-msg-hora { font-size: 9px; opacity: 0.65; margin-top: 3px; }
+    .farpop-chat-form {
+        display: flex; gap: 6px; padding: 8px; border-top: 1px solid #e5e7eb; background: #fff;
+    }
+    .farpop-chat-grupo-form {
+        padding: 8px 10px; border-bottom: 1px solid #e5e7eb; background: #f8fafc;
+    }
+    .farpop-chat-grupo-membros { max-height: 100px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+    .farpop-chat-grupo-check { font-size: 12px; margin: 0; cursor: pointer; }
+    .farpop-chat-grupos-lista .farpop-chat-secao-titulo { background: #f0f9ff; color: #0369a1; }
+
+    /* Chat página completa */
+    .farpop-chat-page { display: flex; height: calc(100vh - 220px); min-height: 420px; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb; }
+    .farpop-chat-page-sidebar { width: 280px; border-right: 1px solid #e5e7eb; overflow-y: auto; background: #f8fafc; flex-shrink: 0; }
+    .farpop-chat-page-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
     .menu-mobile-topo { display: none; }
     .menu-overlay { display: none; }

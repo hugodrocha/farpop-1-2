@@ -90,6 +90,7 @@ Route::middleware('farpop.auth')->group(function () {
     });
 
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::match(['get', 'post'], '/chat/api', [ChatController::class, 'api'])->name('chat.api');
     Route::get('/chat/mensagens', [ChatController::class, 'mensagens'])->name('chat.mensagens');
     Route::get('/chat/usuarios', [ChatController::class, 'usuarios'])->name('chat.usuarios');
     Route::post('/chat/enviar', [ChatController::class, 'enviar'])->name('chat.enviar');

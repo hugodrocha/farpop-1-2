@@ -27,10 +27,12 @@ class FarpopAuth
         }
 
         $clinicaId = $request->session()->get('clinica_id');
+        $userId = (int) $request->session()->get('usuario_id');
+        $podeChat = ConfigService::chatHabilitado() && ChatService::usuarioPodeUsar($userId);
+
         View::share('farpopAvisos', AvisoBarraService::buscarAvisosBarraAtivos($clinicaId ? (int) $clinicaId : null));
-        View::share('farpopChatNaoLidas', ConfigService::chatHabilitado()
-            ? ChatService::chatNaoLidasParaUsuario((int) $request->session()->get('usuario_id'))
-            : 0);
+        View::share('farpopChatPodeUsar', $podeChat);
+        View::share('farpopChatNaoLidas', $podeChat ? ChatService::chatNaoLidasParaUsuario($userId) : 0);
 
         return $next($request);
     }

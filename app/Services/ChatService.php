@@ -6,203 +6,393 @@ use Illuminate\Support\Facades\DB;
 
 class ChatService
 {
+    public const ONLINE_SEGUNDOS = 90;
+    public const MAX_CORPO = 4000;
+
+    public static function inicializar(): void
+    {
+        ChatSchemaService::garantir();
+    }
+
+    public static function usuarioPodeUsar(int $userId): bool
+    {
+        if (!ConfigService::chatHabilitado()) {
+            return false;
+        }
+
+        self::inicializar();
+
+        $u = DB::table('usuarios')
+            ->where('id', $userId)
+            ->first(['bloqueado', 'chat_habilitado']);
+
+        if (!$u || (int) ($u->bloqueado ?? 0) === 1) {
+            return false;
+        }
+
+        return (int) ($u->chat_habilitado ?? 1) === 1;
+    }
+
+    public static function ping(int $userId): void
+    {
+        self::inicializar();
+        DB::table('usuarios')->where('id', $userId)->update(['chat_ultimo_ping' => now()]);
+    }
+
     public static function chatNaoLidasParaUsuario(int $userId): int
     {
-        if (!self::tabelaExiste('chat_mensagens')) {
+        if (!self::usuarioPodeUsar($userId)) {
             return 0;
         }
 
-        return (int) DB::table('chat_mensagens')
-            ->where(function ($query) use ($userId) {
-                $query->where('destinatario_id', $userId)
-                    ->orWhereNull('destinatario_id');
-            })
-            ->whereNull('lida_em')
-            ->where('remetente_id', '<>', $userId)
-            ->count();
+        self::inicializar();
+
+        $total = 0;
+
+        $conversas = DB::table('chat_conversa_membros')
+            ->where('usuario_id', $userId)
+            ->pluck('conversa_id');
+
+        foreach ($conversas as $conversaId) {
+            $total += self::naoLidasNaConversa((int) $conversaId, $userId);
+        }
+
+        return $total;
     }
 
     /**
-     * Lista mensagens de uma conversa (canal geral ou privada) e marca como lidas.
-     *
-     * @return list<array<string, mixed>>
+     * @return array{contatos: list<array<string, mixed>>, grupos: list<array<string, mixed>>, total_nao_lidas: int}
      */
-    public static function listar(int $userId, string|int $alvo): array
+    public static function contatos(int $meuId): array
     {
-        if (!self::tabelaExiste('chat_mensagens')) {
-            return [];
-        }
+        self::ping($meuId);
 
-        if ($alvo === 'geral') {
-            $rows = DB::table('chat_mensagens as m')
-                ->join('usuarios as u', 'u.id', '=', 'm.remetente_id')
-                ->whereNull('m.destinatario_id')
-                ->orderBy('m.enviado_em')
-                ->limit(200)
-                ->get([
-                    'm.id',
-                    'm.remetente_id',
-                    'u.nome_completo as remetente_nome',
-                    'm.mensagem',
-                    'm.enviado_em',
-                ]);
-
-            DB::table('chat_mensagens')
-                ->whereNull('destinatario_id')
-                ->whereNull('lida_em')
-                ->where('remetente_id', '<>', $userId)
-                ->update(['lida_em' => now()]);
-        } else {
-            $outroId = (int) $alvo;
-            if ($outroId <= 0) {
-                return [];
-            }
-
-            $rows = DB::table('chat_mensagens as m')
-                ->join('usuarios as u', 'u.id', '=', 'm.remetente_id')
-                ->where(function ($query) use ($userId, $outroId) {
-                    $query->where(function ($q) use ($userId, $outroId) {
-                        $q->where('m.remetente_id', $userId)
-                            ->where('m.destinatario_id', $outroId);
-                    })->orWhere(function ($q) use ($userId, $outroId) {
-                        $q->where('m.remetente_id', $outroId)
-                            ->where('m.destinatario_id', $userId);
-                    });
-                })
-                ->orderBy('m.enviado_em')
-                ->limit(200)
-                ->get([
-                    'm.id',
-                    'm.remetente_id',
-                    'u.nome_completo as remetente_nome',
-                    'm.mensagem',
-                    'm.enviado_em',
-                ]);
-
-            DB::table('chat_mensagens')
-                ->where('destinatario_id', $userId)
-                ->where('remetente_id', $outroId)
-                ->whereNull('lida_em')
-                ->update(['lida_em' => now()]);
-        }
-
-        $mensagens = [];
-        foreach ($rows as $row) {
-            $mensagens[] = [
-                'id' => (int) $row->id,
-                'remetente_id' => (int) $row->remetente_id,
-                'remetente_nome' => (string) $row->remetente_nome,
-                'mensagem' => (string) $row->mensagem,
-                'enviado_em' => date('d/m/Y H:i', strtotime((string) $row->enviado_em)),
-                'eu' => (int) $row->remetente_id === $userId,
-            ];
-        }
-
-        return $mensagens;
-    }
-
-    /**
-     * Envia uma mensagem para o canal geral ou para um usuário específico.
-     *
-     * @return array{ok: bool, erro?: string}
-     */
-    public static function enviar(int $remetenteId, string|int $alvo, string $mensagem, bool $podeEnviarGeral = false): array
-    {
-        if (!self::tabelaExiste('chat_mensagens')) {
-            return ['ok' => false, 'erro' => 'Chat indisponível.'];
-        }
-
-        $mensagem = trim($mensagem);
-        if ($mensagem === '' || mb_strlen($mensagem) > 2000) {
-            return ['ok' => false, 'erro' => 'Mensagem inválida (vazia ou maior que 2000 caracteres).'];
-        }
-
-        if ($alvo === 'geral') {
-            if (!$podeEnviarGeral) {
-                return ['ok' => false, 'erro' => 'Apenas o Super Usuário pode enviar mensagens no canal geral.'];
-            }
-
-            DB::table('chat_mensagens')->insert([
-                'remetente_id' => $remetenteId,
-                'destinatario_id' => null,
-                'mensagem' => $mensagem,
-            ]);
-        } else {
-            $destId = (int) $alvo;
-            if ($destId <= 0) {
-                return ['ok' => false, 'erro' => 'Destinatário inválido.'];
-            }
-
-            DB::table('chat_mensagens')->insert([
-                'remetente_id' => $remetenteId,
-                'destinatario_id' => $destId,
-                'mensagem' => $mensagem,
-            ]);
-        }
-
-        return ['ok' => true];
-    }
-
-    /**
-     * Lista usuários disponíveis para conversa privada e contadores de não lidas.
-     *
-     * @return array{usuarios: list<array<string, mixed>>, geral_nao_lidas: int}
-     */
-    public static function listarUsuarios(int $userId): array
-    {
-        if (!self::tabelaExiste('chat_mensagens') || !self::tabelaExiste('usuarios')) {
-            return ['usuarios' => [], 'geral_nao_lidas' => 0];
-        }
-
-        $usuarios = DB::table('usuarios as u')
+        $rows = DB::table('usuarios as u')
             ->leftJoin('clinicas as c', 'c.id', '=', 'u.clinica_id')
-            ->where('u.id', '<>', $userId)
+            ->where('u.id', '<>', $meuId)
             ->where('u.bloqueado', 0)
+            ->where('u.chat_habilitado', 1)
             ->orderBy('u.nome_completo')
             ->get([
                 'u.id',
+                'u.usuario',
                 'u.nome_completo',
                 'u.perfil',
+                'u.cargo',
+                'u.chat_ultimo_ping',
                 'c.nome as clinica',
             ]);
 
-        $lista = [];
-        foreach ($usuarios as $usuario) {
-            $naoLidas = (int) DB::table('chat_mensagens')
-                ->where('remetente_id', $usuario->id)
-                ->where('destinatario_id', $userId)
-                ->whereNull('lida_em')
-                ->count();
+        $contatos = [];
+        foreach ($rows as $r) {
+            $outroId = (int) $r->id;
+            $conversaId = self::obterOuCriarConversaPrivada($meuId, $outroId);
+            $ultima = DB::table('chat_mensagens')
+                ->where('conversa_id', $conversaId)
+                ->max('enviado_em');
 
-            $lista[] = [
-                'id' => (int) $usuario->id,
-                'nome_completo' => (string) $usuario->nome_completo,
-                'perfil' => (string) $usuario->perfil,
-                'clinica' => $usuario->clinica,
-                'nao_lidas' => $naoLidas,
+            $contatos[] = [
+                'id' => $outroId,
+                'usuario' => (string) $r->usuario,
+                'nome_completo' => (string) $r->nome_completo,
+                'perfil' => (string) $r->perfil,
+                'setor' => (string) ($r->clinica ?? $r->cargo ?? ''),
+                'online' => self::estaOnline($r->chat_ultimo_ping),
+                'nao_lidas' => self::naoLidasNaConversa($conversaId, $meuId, $outroId),
+                'conversa_id' => $conversaId,
+                'ultima_msg_em' => $ultima ?: null,
             ];
         }
 
-        $geralNaoLidas = (int) DB::table('chat_mensagens')
-            ->whereNull('destinatario_id')
-            ->whereNull('lida_em')
-            ->where('remetente_id', '<>', $userId)
-            ->count();
+        usort($contatos, function ($a, $b) {
+            if ($a['online'] !== $b['online']) {
+                return $b['online'] <=> $a['online'];
+            }
+            $ta = $a['ultima_msg_em'] ? strtotime((string) $a['ultima_msg_em']) : 0;
+            $tb = $b['ultima_msg_em'] ? strtotime((string) $b['ultima_msg_em']) : 0;
+            if ($ta !== $tb) {
+                return $tb <=> $ta;
+            }
+
+            return strcasecmp($a['nome_completo'], $b['nome_completo']);
+        });
+
+        $grupos = self::listarGrupos($meuId);
 
         return [
-            'usuarios' => $lista,
-            'geral_nao_lidas' => $geralNaoLidas,
+            'contatos' => $contatos,
+            'grupos' => $grupos,
+            'total_nao_lidas' => self::chatNaoLidasParaUsuario($meuId),
         ];
     }
 
-    private static function tabelaExiste(string $tabela): bool
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public static function mensagens(int $meuId, int $conversaId, int $sinceId = 0): array
     {
-        try {
-            $result = DB::select('SHOW TABLES LIKE ?', [$tabela]);
+        if (!self::usuarioParticipaConversa($meuId, $conversaId)) {
+            return [];
+        }
 
-            return count($result) > 0;
-        } catch (\Throwable) {
+        $rows = DB::table('chat_mensagens as m')
+            ->join('usuarios as u', 'u.id', '=', 'm.remetente_id')
+            ->where('m.conversa_id', $conversaId)
+            ->where('m.id', '>', $sinceId)
+            ->orderBy('m.id')
+            ->limit(500)
+            ->get([
+                'm.id',
+                'm.remetente_id',
+                'u.nome_completo as remetente_nome',
+                'm.mensagem',
+                'm.enviado_em',
+            ]);
+
+        $lista = [];
+        foreach ($rows as $m) {
+            $lista[] = [
+                'id' => (int) $m->id,
+                'remetente_id' => (int) $m->remetente_id,
+                'remetente_nome' => (string) $m->remetente_nome,
+                'corpo' => (string) $m->mensagem,
+                'mensagem' => (string) $m->mensagem,
+                'criado_em' => self::formatarDataHoraBr($m->enviado_em),
+                'enviado_em' => $m->enviado_em,
+                'eu' => (int) $m->remetente_id === $meuId,
+            ];
+        }
+
+        return $lista;
+    }
+
+    public static function marcarLido(int $meuId, int $conversaId): int
+    {
+        if (!self::usuarioParticipaConversa($meuId, $conversaId)) {
+            return 0;
+        }
+
+        $maxId = (int) DB::table('chat_mensagens')
+            ->where('conversa_id', $conversaId)
+            ->max('id');
+
+        DB::statement('
+            INSERT INTO chat_leituras (conversa_id, usuario_id, ultimo_id_lido, lido_em)
+            VALUES (?, ?, ?, NOW())
+            ON DUPLICATE KEY UPDATE
+                ultimo_id_lido = GREATEST(ultimo_id_lido, VALUES(ultimo_id_lido)),
+                lido_em = NOW()
+        ', [$conversaId, $meuId, $maxId]);
+
+        return $maxId;
+    }
+
+    /**
+     * @return array{ok: bool, erro?: string, mensagem?: array<string, mixed>, conversa_id?: int}
+     */
+    public static function enviar(int $meuId, int $conversaId, string $texto): array
+    {
+        $texto = trim($texto);
+        if ($texto === '') {
+            return ['ok' => false, 'erro' => 'Mensagem vazia.'];
+        }
+        if (mb_strlen($texto) > self::MAX_CORPO) {
+            return ['ok' => false, 'erro' => 'Mensagem muito longa (máx. 4000 caracteres).'];
+        }
+        if (!self::usuarioParticipaConversa($meuId, $conversaId)) {
+            return ['ok' => false, 'erro' => 'Conversa indisponível.'];
+        }
+
+        $novoId = DB::table('chat_mensagens')->insertGetId([
+            'conversa_id' => $conversaId,
+            'remetente_id' => $meuId,
+            'destinatario_id' => null,
+            'mensagem' => $texto,
+            'enviado_em' => now(),
+        ]);
+
+        DB::table('chat_conversas')->where('id', $conversaId)->update(['atualizado_em' => now()]);
+        self::marcarLido($meuId, $conversaId);
+
+        return [
+            'ok' => true,
+            'conversa_id' => $conversaId,
+            'mensagem' => [
+                'id' => $novoId,
+                'remetente_id' => $meuId,
+                'corpo' => $texto,
+                'mensagem' => $texto,
+                'criado_em' => self::formatarDataHoraBr(now()),
+            ],
+        ];
+    }
+
+    /**
+     * @return array{ok: bool, erro?: string, conversa_id?: int}
+     */
+    public static function enviarParaUsuario(int $meuId, int $outroId, string $texto): array
+    {
+        if ($outroId <= 0 || $outroId === $meuId) {
+            return ['ok' => false, 'erro' => 'Usuário inválido.'];
+        }
+        if (!self::usuarioPodeUsar($outroId)) {
+            return ['ok' => false, 'erro' => 'Destinatário indisponível para o chat.'];
+        }
+
+        $conversaId = self::obterOuCriarConversaPrivada($meuId, $outroId);
+
+        return self::enviar($meuId, $conversaId, $texto);
+    }
+
+    /**
+     * @param list<int> $membrosIds
+     * @return array{ok: bool, erro?: string, conversa_id?: int}
+     */
+    public static function criarGrupo(int $meuId, string $titulo, array $membrosIds): array
+    {
+        $titulo = trim($titulo);
+        if ($titulo === '') {
+            return ['ok' => false, 'erro' => 'Informe o nome do grupo.'];
+        }
+
+        $membros = array_unique(array_filter(array_map('intval', $membrosIds), fn ($id) => $id > 0 && $id !== $meuId));
+        if (count($membros) < 1) {
+            return ['ok' => false, 'erro' => 'Selecione ao menos um participante.'];
+        }
+
+        foreach ($membros as $mid) {
+            if (!self::usuarioPodeUsar($mid)) {
+                return ['ok' => false, 'erro' => 'Um ou mais participantes não podem usar o chat.'];
+            }
+        }
+
+        $conversaId = DB::table('chat_conversas')->insertGetId([
+            'tipo' => 'grupo',
+            'titulo' => mb_substr($titulo, 0, 180),
+            'criado_por' => $meuId,
+            'criado_em' => now(),
+            'atualizado_em' => now(),
+        ]);
+
+        $insert = [['conversa_id' => $conversaId, 'usuario_id' => $meuId]];
+        foreach ($membros as $mid) {
+            $insert[] = ['conversa_id' => $conversaId, 'usuario_id' => $mid];
+        }
+        DB::table('chat_conversa_membros')->insert($insert);
+
+        return ['ok' => true, 'conversa_id' => (int) $conversaId];
+    }
+
+    public static function obterOuCriarConversaPrivada(int $a, int $b): int
+    {
+        self::inicializar();
+
+        if ($a === $b) {
+            return 0;
+        }
+
+        $menor = min($a, $b);
+        $maior = max($a, $b);
+
+        $existente = DB::table('chat_conversas')
+            ->where('tipo', 'privada')
+            ->where('usuario_menor_id', $menor)
+            ->where('usuario_maior_id', $maior)
+            ->value('id');
+
+        if ($existente) {
+            return (int) $existente;
+        }
+
+        $id = DB::table('chat_conversas')->insertGetId([
+            'tipo' => 'privada',
+            'usuario_menor_id' => $menor,
+            'usuario_maior_id' => $maior,
+            'criado_por' => $a,
+            'criado_em' => now(),
+            'atualizado_em' => now(),
+        ]);
+
+        DB::table('chat_conversa_membros')->insert([
+            ['conversa_id' => $id, 'usuario_id' => $menor],
+            ['conversa_id' => $id, 'usuario_id' => $maior],
+        ]);
+
+        return (int) $id;
+    }
+
+    public static function conversaIdPorOutro(int $meuId, int $outroId): int
+    {
+        return self::obterOuCriarConversaPrivada($meuId, $outroId);
+    }
+
+    private static function listarGrupos(int $meuId): array
+    {
+        $rows = DB::table('chat_conversas as c')
+            ->join('chat_conversa_membros as cm', 'cm.conversa_id', '=', 'c.id')
+            ->where('cm.usuario_id', $meuId)
+            ->where('c.tipo', 'grupo')
+            ->orderByDesc('c.atualizado_em')
+            ->get(['c.id', 'c.titulo', 'c.atualizado_em']);
+
+        $grupos = [];
+        foreach ($rows as $g) {
+            $cid = (int) $g->id;
+            $grupos[] = [
+                'conversa_id' => $cid,
+                'titulo' => (string) $g->titulo,
+                'nao_lidas' => self::naoLidasNaConversa($cid, $meuId),
+                'ultima_msg_em' => $g->atualizado_em,
+                'membros' => DB::table('chat_conversa_membros')->where('conversa_id', $cid)->count(),
+            ];
+        }
+
+        return $grupos;
+    }
+
+    private static function naoLidasNaConversa(int $conversaId, int $meuId, ?int $somenteDe = null): int
+    {
+        $ultimoLido = (int) DB::table('chat_leituras')
+            ->where('conversa_id', $conversaId)
+            ->where('usuario_id', $meuId)
+            ->value('ultimo_id_lido');
+
+        $q = DB::table('chat_mensagens')
+            ->where('conversa_id', $conversaId)
+            ->where('id', '>', $ultimoLido)
+            ->where('remetente_id', '<>', $meuId);
+
+        if ($somenteDe !== null) {
+            $q->where('remetente_id', $somenteDe);
+        }
+
+        return (int) $q->count();
+    }
+
+    private static function usuarioParticipaConversa(int $userId, int $conversaId): bool
+    {
+        return DB::table('chat_conversa_membros')
+            ->where('conversa_id', $conversaId)
+            ->where('usuario_id', $userId)
+            ->exists();
+    }
+
+    private static function estaOnline(?string $ultimoPing): bool
+    {
+        if (!$ultimoPing) {
             return false;
         }
+
+        return (time() - strtotime($ultimoPing)) <= self::ONLINE_SEGUNDOS;
+    }
+
+    private static function formatarDataHoraBr($dataHora): string
+    {
+        if (!$dataHora) {
+            return '';
+        }
+        $ts = strtotime((string) $dataHora);
+
+        return $ts ? date('d/m/Y H:i', $ts) : (string) $dataHora;
     }
 }

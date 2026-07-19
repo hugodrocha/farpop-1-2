@@ -26,6 +26,16 @@
                     <div class="col-md-4"><label class="form-label">Perfil</label><select name="perfil" class="form-select"><option value="tecnico" {{ $usuario->perfil == 'tecnico' ? 'selected' : '' }}>Técnico</option><option value="farmaceutico" {{ $usuario->perfil == 'farmaceutico' ? 'selected' : '' }}>Farmacêutico</option><option value="admin" {{ $usuario->perfil == 'admin' ? 'selected' : '' }}>Administrador</option><option value="gestor" {{ $usuario->perfil == 'gestor' ? 'selected' : '' }}>Gestor</option><option value="superuser" {{ $usuario->perfil == 'superuser' ? 'selected' : '' }}>Super Usuário</option><option value="consulta" {{ $usuario->perfil == 'consulta' ? 'selected' : '' }}>Consulta</option></select></div>
                     <div class="col-md-4"><label class="form-label">Clínica</label><select name="clinica_id" class="form-select"><option value="">Sem clínica</option>@foreach($clinicas as $clinica)<option value="{{ $clinica->id }}" {{ $usuario->clinica_id == $clinica->id ? 'selected' : '' }}>{{ $clinica->nome }}</option>@endforeach</select></div>
                     <div class="col-md-4"><label class="form-label">Bloqueado</label><select name="bloqueado" class="form-select"><option value="0" {{ $usuario->bloqueado ? '' : 'selected' }}>Não</option><option value="1" {{ $usuario->bloqueado ? 'selected' : '' }}>Sim</option></select></div>
+                    @if(\App\Services\PerfilService::podeConfigurarChatUsuario(session('perfil', '')))
+                    <div class="col-md-4">
+                        <label class="form-label">Chat habilitado</label>
+                        <select name="chat_habilitado" class="form-select">
+                            <option value="1" {{ ($usuario->chat_habilitado ?? 1) ? 'selected' : '' }}>Sim</option>
+                            <option value="0" {{ !($usuario->chat_habilitado ?? 1) ? 'selected' : '' }}>Não</option>
+                        </select>
+                        <div class="form-text">Somente administrador e super usuário podem alterar.</div>
+                    </div>
+                    @endif
                 </div>
                 <div class="d-flex gap-2 mt-4">
                     <button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i> Salvar</button>
