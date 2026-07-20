@@ -26,6 +26,7 @@
     $podeRelatorios = ModuloService::podeAcessar($perfil, 'relatorios');
     $podeFornecedores = ModuloService::podeAcessarSubmodulo($perfil, 'cadastros', 'fornecedores');
     $podeSolicitacao = ModuloService::podeAcessarSubmodulo($perfil, 'transferencias', 'solicitacao');
+    $podeEntreUnidades = ModuloService::podeAcessarSubmodulo($perfil, 'transferencias', 'entre_unidades');
     $podeHorus = ModuloService::podeAcessarSubmodulo($perfil, 'integracoes', 'horus');
     $logado = session()->has('usuario_id');
 @endphp
@@ -105,6 +106,9 @@
                     <div id="menuTransferencias" class="sidebar-submenu {{ request()->routeIs('transferencias.*','solicitacoes.*') ? 'show' : '' }}">
                         @if($podeSolicitacao)
                         <a href="{{ route('solicitacoes.index') }}" class="sidebar-sublink {{ request()->routeIs('solicitacoes.*') ? 'active' : '' }}"><i class="fas fa-clipboard-list sidebar-icone"></i><span class="sidebar-label">Solicitações</span></a>
+                        @endif
+                        @if($podeEntreUnidades)
+                        <a href="{{ route('transferencias.entre-unidades.create') }}" class="sidebar-sublink {{ request()->routeIs('transferencias.entre-unidades*') ? 'active' : '' }}"><i class="fas fa-exchange-alt sidebar-icone"></i><span class="sidebar-label">Entre unidades</span></a>
                         @endif
                         <a href="{{ route('transferencias.create') }}" class="sidebar-sublink {{ request()->routeIs('transferencias.create') ? 'active' : '' }}"><i class="fas fa-dolly sidebar-icone"></i><span class="sidebar-label">Enviar (matriz)</span></a>
                         <a href="{{ route('transferencias.receber') }}" class="sidebar-sublink {{ request()->routeIs('transferencias.receber*') ? 'active' : '' }}"><i class="fas fa-barcode sidebar-icone"></i><span class="sidebar-label">Receber</span></a>

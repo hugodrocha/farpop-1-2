@@ -2,7 +2,7 @@
 
 Sistema de **gestão farmacêutica municipal** da Prefeitura de Mesquita (Farmácia Popular), migrado do PHP legado (`htdocs/farpop`) para **Laravel 12**.
 
-O FARPOP cobre cadastros, controle de estoque por lote (PEPS/FIFO), dispensa ao paciente, transferências matriz → unidade, solicitações com aprovação, relatórios, alertas, chat interno, integrações (PEC/e-SUS, exportação Hórus) e backup do banco.
+O FARPOP cobre cadastros, controle de estoque por lote (PEPS/FIFO), dispensa ao paciente, transferências (matriz, entre unidades e devolução), solicitações com aprovação, relatórios, alertas, chat interno, integrações (PEC/e-SUS, exportação Hórus) e backup do banco.
 
 ---
 
@@ -26,8 +26,9 @@ O FARPOP cobre cadastros, controle de estoque por lote (PEPS/FIFO), dispensa ao 
 | **2** | Pacientes, relatórios (CSV/impressão), alertas de vencimento, CNES/CNPJ em unidades | Concluída |
 | **3** | Lotes PEPS/FIFO, inventário, ajustes, movimentações, etiquetas | Concluída |
 | **4** | Solicitação → aprovação → separação → envio, fornecedores/fabricantes, reservas, Hórus, backup | Concluída |
+| **5** | Transferência entre unidades, devolução unidade → matriz, tipos de movimentação | Concluída |
 
-**Próximo previsto:** transferência entre unidades (sem passar pela central), integração Hórus via API (hoje é exportação CSV manual).
+**Próximo previsto:** integração Hórus via API, relatório consumo anual, código de barras Code128 real.
 
 Detalhes dos módulos e perfis: `config/farpop.php`.
 
@@ -49,7 +50,9 @@ Detalhes dos módulos e perfis: `config/farpop.php`.
 ### Transferências
 
 - **Envio direto** (central → unidade) — montagem por código de barras, guia 26 dígitos
-- **Recebimento** — confirmação na unidade destino
+- **Entre unidades** — envio direto entre unidades de saúde (PEPS na origem)
+- **Devolução à matriz** — unidade devolve medicamentos para a central
+- **Recebimento** — confirmação na unidade destino (qualquer tipo)
 - **Em trânsito** — acompanhamento
 - **Solicitações** — unidade solicita → central aprova/recusa → separação → gera transferência
 
@@ -216,6 +219,7 @@ Reservas vencidas são expiradas automaticamente às **01:00**.
 | Ajustes | `/ajustes/novo` |
 | Movimentações | `/movimentacoes` |
 | Transferências | `/transferencias` |
+| Entre unidades | `/transferencias/entre-unidades` |
 | Solicitações | `/solicitacoes` |
 | Pacientes | `/pacientes` |
 | Alertas validade | `/alertas/vencimento` |
@@ -261,6 +265,16 @@ resources/views/          # Blade
 routes/web.php            # Rotas
 bootstrap/app.php         # Middleware + schedule
 ```
+
+---
+
+## Fluxo: transferência entre unidades
+
+1. Farmacêutico/auxiliar da **unidade origem** acessa **Transferências → Entre unidades**
+2. Escolhe **Entre unidades** ou **Devolução à matriz**
+3. Escaneia medicamentos (estoque validado na origem) e envia
+4. **Unidade destino** recebe em `/transferencias/receber` (mesmo fluxo da guia matriz)
+5. Movimentação registrada como `transferencia_entre_unidades` ou `transferencia_unidade_matriz`
 
 ---
 

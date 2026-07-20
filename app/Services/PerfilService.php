@@ -84,13 +84,28 @@ class PerfilService
         return in_array($perfil, ['superuser', 'admin'], true);
     }
 
-    public static function podeCancelarTransferencia(string $perfil, int $clinicaUsuarioId, ?int $centralId): bool
+    public static function podeCancelarTransferencia(string $perfil, int $clinicaUsuarioId, ?int $centralId, ?int $origemTransferenciaId = null): bool
     {
-        if (in_array($perfil, ['superuser', 'admin'], true)) {
+        if (in_array($perfil, ['superuser', 'admin', 'gestor'], true)) {
             return true;
         }
 
+        if ($origemTransferenciaId && $clinicaUsuarioId === $origemTransferenciaId) {
+            return in_array($perfil, ['farmaceutico', 'tecnico'], true);
+        }
+
         return $perfil === 'farmaceutico' && $centralId && $clinicaUsuarioId === $centralId;
+    }
+
+    public static function podeEnviarTransferenciaEntreUnidades(string $perfil, int $clinicaUsuarioId, int $origemId): bool
+    {
+        if (self::ehAdmin($perfil)) {
+            return true;
+        }
+
+        return in_array($perfil, ['farmaceutico', 'tecnico'], true)
+            && $clinicaUsuarioId > 0
+            && $clinicaUsuarioId === $origemId;
     }
 
     public static function podeEnviarTransferencia(string $perfil, int $clinicaUsuarioId, ?int $centralId): bool

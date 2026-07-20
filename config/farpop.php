@@ -110,7 +110,7 @@ return [
                 'transito' => ['label' => 'Em transporte', 'status' => 'ativo'],
                 'guia' => ['label' => 'Guia de transferência', 'status' => 'ativo'],
                 'solicitacao' => ['label' => 'Solicitação e aprovação', 'status' => 'ativo'],
-                'entre_unidades' => ['label' => 'Transferência entre unidades', 'status' => 'planejado'],
+                'entre_unidades' => ['label' => 'Transferência entre unidades', 'status' => 'ativo'],
             ],
         ],
         'alertas' => [
@@ -230,6 +230,16 @@ return [
                 'Reserva de medicamentos por paciente',
                 'Integração Hórus / exportação SUS',
                 'Backup automático',
+            ],
+            'status' => 'concluido',
+        ],
+        'fase_5' => [
+            'titulo' => 'Rede de unidades',
+            'itens' => [
+                'Transferência direta entre unidades de saúde',
+                'Devolução de medicamentos unidade → matriz',
+                'Tipo de movimentação e cancelamento por unidade de origem',
+                'Histórico com identificação do tipo de transferência',
             ],
             'status' => 'concluido',
         ],

@@ -9,7 +9,10 @@
             <h1 class="farpop-page-title"><i class="fas fa-truck me-2"></i>Transferências</h1>
             <p class="farpop-page-subtitle">Movimentação de medicamentos entre unidades.</p>
         </div>
-        <a href="{{ route('transferencias.create') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i> Nova transferência</a>
+        <a href="{{ route('transferencias.create') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i> Enviar (matriz)</a>
+        @if(\App\Services\ModuloService::podeAcessarSubmodulo(session('perfil',''), 'transferencias', 'entre_unidades'))
+        <a href="{{ route('transferencias.entre-unidades.create') }}" class="btn btn-outline-primary"><i class="fas fa-exchange-alt me-1"></i> Entre unidades</a>
+        @endif
     </div>
 
     @include('partials.flash')
@@ -21,6 +24,7 @@
                     <thead>
                         <tr>
                             <th>Nota</th>
+                            <th>Tipo</th>
                             <th>Data</th>
                             <th>Origem</th>
                             <th>Destino</th>
@@ -33,6 +37,7 @@
                         @forelse($transferencias as $transferencia)
                             <tr>
                                 <td><code class="small">{{ $transferencia->codigo_nota ?: '—' }}</code></td>
+                                <td><span class="badge bg-light text-dark">{{ \App\Services\TransferenciaService::labelTipo($transferencia->tipo_transferencia ?? 'matriz_unidade') }}</span></td>
                                 <td>{{ $transferencia->enviado_em ? \Carbon\Carbon::parse($transferencia->enviado_em)->format('d/m/Y H:i') : '—' }}</td>
                                 <td>{{ $transferencia->clinica_origem }}</td>
                                 <td>{{ $transferencia->clinica_destino }}</td>

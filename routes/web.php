@@ -34,6 +34,7 @@ use App\Http\Controllers\FornecedorController;
 use App\Http\Controllers\FabricanteController;
 use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\HorusController;
+use App\Http\Controllers\TransferenciaEntreUnidadesController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route('login'));
@@ -73,6 +74,8 @@ Route::middleware('farpop.auth')->group(function () {
         Route::get('/transferencias/buscar-med', [TransferenciaController::class, 'buscarMedicamento'])->name('transferencias.buscar-med');
         Route::post('/transferencias/lote', [TransferenciaController::class, 'finalizarLote'])->name('transferencias.lote');
         Route::post('/transferencias/{id}/cancelar', [TransferenciaController::class, 'cancelar'])->name('transferencias.cancelar');
+        Route::get('/transferencias/entre-unidades', [TransferenciaEntreUnidadesController::class, 'create'])->name('transferencias.entre-unidades.create');
+        Route::post('/transferencias/entre-unidades', [TransferenciaEntreUnidadesController::class, 'store'])->name('transferencias.entre-unidades.store');
         Route::resource('transferencias', TransferenciaController::class)->except(['show']);
 
         Route::get('/solicitacoes', [SolicitacaoTransferenciaController::class, 'index'])->name('solicitacoes.index');

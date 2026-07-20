@@ -48,8 +48,11 @@
                 <div class="col-6"><strong>Destino:</strong><br>{{ $t->clinica_destino }}</div>
             </div>
             <div class="row mb-3">
+                <div class="col-6"><strong>Tipo:</strong> {{ \App\Services\TransferenciaService::labelTipo($t->tipo_transferencia ?? 'matriz_unidade') }}</div>
                 <div class="col-6"><strong>Enviado por:</strong> {{ $t->enviado_por ?? '—' }}</div>
-                <div class="col-6"><strong>Observação:</strong> {{ $t->observacao ?: '—' }}</div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-12"><strong>Observação:</strong> {{ $t->observacao ?: '—' }}</div>
             </div>
 
             <div class="table-responsive">
