@@ -29,6 +29,7 @@ O FARPOP cobre cadastros, controle de estoque por lote (PEPS/FIFO), dispensa ao 
 | **5** | Transferência entre unidades, devolução unidade → matriz, tipos de movimentação | Concluída |
 | **6** | Consumo anual (CSV/impressão), etiquetas CODE128 | Concluída |
 | **7** | Central de alertas, inventário por lote, fabricantes nas entradas | Concluída |
+| **8** | Hub de integrações, dashboard com alertas, inventário aprimorado | Concluída |
 
 Detalhes dos módulos e perfis: `config/farpop.php`.
 
@@ -70,7 +71,7 @@ Detalhes dos módulos e perfis: `config/farpop.php`.
 - **Alertas** — central operacional (estoque baixo/crítico, validade, pendências de solicitações/transferências), barra de avisos
 - **Chat interno** — widget flutuante, contatos, grupos, online/offline, auditoria de chat
 - **PEC/e-SUS** — busca de cidadão por CPF (PostgreSQL)
-- **Hórus / SUS** — exportação CSV legada (integração manual; Hórus em descontinuação pelo SUS)
+- **Integrações** — hub PEC/e-SUS, exportação Hórus legada e código de barras
 - **Auditoria** — log de ações + ações críticas
 - **Configurações** — alertas, chat, teste PEC, backup manual
 - **Backup automático** — comando Artisan + agendamento diário
@@ -229,6 +230,7 @@ Reservas vencidas são expiradas automaticamente às **01:00**.
 | Relatórios | `/relatorios` |
 | Fornecedores | `/fornecedores` |
 | Fabricantes | `/fabricantes` |
+| Integrações | `/integracoes` |
 | Hórus / SUS | `/integracoes/horus` |
 | Configurações | `/configuracoes` |
 | Auditoria | `/auditoria` |

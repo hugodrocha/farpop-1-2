@@ -7,6 +7,7 @@ use App\Services\LoteService;
 use App\Services\ModuloService;
 use App\Services\PerfilService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class InventarioController extends Controller
 {
@@ -22,8 +23,11 @@ class InventarioController extends Controller
             : (int) $request->session()->get('clinica_id', 0);
 
         $lotes = LoteService::listarLotes($clinicaId ?: null, null, false);
+        $clinicas = PerfilService::ehAdmin($perfil)
+            ? DB::table('clinicas')->where('ativo', 1)->orderBy('nome')->get()
+            : collect();
 
-        return view('inventario.index', compact('lotes', 'clinicaId', 'perfil'));
+        return view('inventario.index', compact('lotes', 'clinicaId', 'perfil', 'clinicas'));
     }
 
     public function store(Request $request)

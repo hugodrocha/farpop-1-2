@@ -17,6 +17,7 @@
             <div class="d-flex gap-2 flex-wrap">
                 <a href="{{ route('entradas.create') }}" class="btn btn-light btn-sm"><i class="fas fa-arrow-down me-1"></i> Nova entrada</a>
                 <a href="{{ route('saidas.create') }}" class="btn btn-outline-light btn-sm"><i class="fas fa-pills me-1"></i> Nova dispensação</a>
+                <a href="{{ route('alertas.index') }}" class="btn btn-outline-light btn-sm"><i class="fas fa-bell me-1"></i> Central de alertas</a>
                 @if($visaoGlobal)
                     <a href="{{ route('transferencias.create') }}" class="btn btn-outline-light btn-sm"><i class="fas fa-truck me-1"></i> Enviar lote</a>
                 @endif
@@ -33,21 +34,27 @@
                 <div class="kpi-valor">{{ number_format($totais['estoque'], 0, ',', '.') }}</div>
                 <div class="kpi-hint">unidades em todas as clínicas</div>
             </div>
-            <div class="farpop-kpi-card kpi-5">
+            <a href="{{ route('alertas.estoque', array_filter(['nivel' => 'critico', 'clinica_id' => $escopoAlertas])) }}" class="text-decoration-none">
+            <div class="farpop-kpi-card kpi-5" style="cursor:pointer">
                 <div class="kpi-label"><i class="fas fa-exclamation-triangle me-1"></i> Itens críticos</div>
                 <div class="kpi-valor">{{ number_format($totais['criticos'], 0, ',', '.') }}</div>
-                <div class="kpi-hint">≤ {{ $totais['pct_vermelho'] }}% do mínimo</div>
+                <div class="kpi-hint">≤ {{ $totais['pct_vermelho'] ?? '' }}% do mínimo</div>
             </div>
-            <div class="farpop-kpi-card kpi-4">
+            </a>
+            <a href="{{ route('alertas.estoque', array_filter(['nivel' => 'atencao', 'clinica_id' => $escopoAlertas])) }}" class="text-decoration-none">
+            <div class="farpop-kpi-card kpi-4" style="cursor:pointer">
                 <div class="kpi-label"><i class="fas fa-exclamation-circle me-1"></i> Itens em atenção</div>
                 <div class="kpi-valor">{{ number_format($totais['amarelos'], 0, ',', '.') }}</div>
-                <div class="kpi-hint">≤ {{ $totais['pct_amarelo'] }}% do mínimo</div>
+                <div class="kpi-hint">≤ {{ $totais['pct_amarelo'] ?? '' }}% do mínimo</div>
             </div>
-            <div class="farpop-kpi-card kpi-3">
+            </a>
+            <a href="{{ route('alertas.pendencias', array_filter(['clinica_id' => $escopoAlertas])) }}" class="text-decoration-none">
+            <div class="farpop-kpi-card kpi-3" style="cursor:pointer">
                 <div class="kpi-label"><i class="fas fa-truck me-1"></i> Transf. pendentes</div>
                 <div class="kpi-valor">{{ number_format($totais['transf_pendentes'], 0, ',', '.') }}</div>
                 <div class="kpi-hint">aguardando recebimento</div>
             </div>
+            </a>
             <a href="{{ route('solicitacoes.index') }}" class="text-decoration-none">
             <div class="farpop-kpi-card kpi-2" style="cursor:pointer">
                 <div class="kpi-label"><i class="fas fa-clipboard-list me-1"></i> Solicitações</div>
@@ -169,21 +176,27 @@
                 <div class="kpi-valor">{{ number_format($totais['estoque'], 0, ',', '.') }}</div>
                 <div class="kpi-hint">{{ number_format($totais['itens'], 0, ',', '.') }} item(ns) cadastrado(s)</div>
             </div>
-            <div class="farpop-kpi-card kpi-5">
+            <a href="{{ route('alertas.estoque', ['nivel' => 'critico']) }}" class="text-decoration-none">
+            <div class="farpop-kpi-card kpi-5" style="cursor:pointer">
                 <div class="kpi-label"><i class="fas fa-exclamation-triangle me-1"></i> Itens críticos</div>
                 <div class="kpi-valor">{{ number_format($totais['criticos'], 0, ',', '.') }}</div>
                 <div class="kpi-hint">abaixo do mínimo crítico</div>
             </div>
-            <div class="farpop-kpi-card kpi-4">
+            </a>
+            <a href="{{ route('alertas.estoque', ['nivel' => 'atencao']) }}" class="text-decoration-none">
+            <div class="farpop-kpi-card kpi-4" style="cursor:pointer">
                 <div class="kpi-label"><i class="fas fa-exclamation-circle me-1"></i> Itens em atenção</div>
                 <div class="kpi-valor">{{ number_format($totais['amarelos'], 0, ',', '.') }}</div>
                 <div class="kpi-hint">próximos do mínimo</div>
             </div>
-            <div class="farpop-kpi-card kpi-3">
+            </a>
+            <a href="{{ route('alertas.pendencias') }}" class="text-decoration-none">
+            <div class="farpop-kpi-card kpi-3" style="cursor:pointer">
                 <div class="kpi-label"><i class="fas fa-truck me-1"></i> Transf. pendentes</div>
                 <div class="kpi-valor">{{ number_format($totais['transf_pendentes'], 0, ',', '.') }}</div>
                 <div class="kpi-hint">aguardando recebimento</div>
             </div>
+            </a>
             <a href="{{ route('solicitacoes.index') }}" class="text-decoration-none">
             <div class="farpop-kpi-card kpi-2" style="cursor:pointer">
                 <div class="kpi-label"><i class="fas fa-clipboard-list me-1"></i> Solicitações</div>
@@ -212,6 +225,41 @@
 
         <div class="row g-3 mb-4">
             <div class="col-md-4">
+                <a href="{{ route('alertas.index') }}" class="text-decoration-none">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <i class="fas fa-bell text-primary mb-2"></i>
+                            <h3 class="h6 mb-1">Central de alertas</h3>
+                            <p class="text-muted small mb-0">{{ $alertasResumo['estoque_critico'] + $alertasResumo['vencidos'] }} item(ns) crítico(s) agora.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ route('inventario.index') }}" class="text-decoration-none">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <i class="fas fa-clipboard-check text-primary mb-2"></i>
+                            <h3 class="h6 mb-1">Inventário</h3>
+                            <p class="text-muted small mb-0">Contagem física por lote.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ route('transferencias.receber') }}" class="text-decoration-none">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <i class="fas fa-barcode text-primary mb-2"></i>
+                            <h3 class="h6 mb-1">Receber transferência</h3>
+                            <p class="text-muted small mb-0">Confirmar nota de envio.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
                 <a href="{{ route('estoque.index') }}" class="text-decoration-none">
                     <div class="card h-100">
                         <div class="card-body">
@@ -233,18 +281,6 @@
                     </div>
                 </a>
             </div>
-            <div class="col-md-4">
-                <a href="{{ route('transferencias.receber') }}" class="text-decoration-none">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <i class="fas fa-barcode text-primary mb-2"></i>
-                            <h3 class="h6 mb-1">Receber transferência</h3>
-                            <p class="text-muted small mb-0">Confirmar nota de envio.</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        </div>
     @endif
 
     <h2 class="farpop-section-title">Últimas dispensações</h2>

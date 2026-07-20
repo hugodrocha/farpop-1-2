@@ -29,6 +29,7 @@
     $podeEntreUnidades = ModuloService::podeAcessarSubmodulo($perfil, 'transferencias', 'entre_unidades');
     $podeAlertas = ModuloService::podeAcessar($perfil, 'alertas');
     $podeHorus = ModuloService::podeAcessarSubmodulo($perfil, 'integracoes', 'horus');
+    $podeIntegracoes = ModuloService::podeAcessar($perfil, 'integracoes');
     $logado = session()->has('usuario_id');
 @endphp
 
@@ -185,8 +186,11 @@
                     </div>
                     <div id="menuConfig" class="sidebar-submenu {{ request()->routeIs('configuracoes.*','auditoria.*','avisos.*','integracoes.*') ? 'show' : '' }}">
                         <a href="{{ route('configuracoes.index') }}" class="sidebar-sublink {{ request()->routeIs('configuracoes.*') ? 'active' : '' }}"><i class="fas fa-sliders-h sidebar-icone"></i><span class="sidebar-label">Configurações</span></a>
+                        @if($podeIntegracoes)
+                        <a href="{{ route('integracoes.index') }}" class="sidebar-sublink {{ request()->routeIs('integracoes.index') ? 'active' : '' }}"><i class="fas fa-plug sidebar-icone"></i><span class="sidebar-label">Integrações</span></a>
+                        @endif
                         @if($podeHorus)
-                        <a href="{{ route('integracoes.horus') }}" class="sidebar-sublink {{ request()->routeIs('integracoes.horus*') ? 'active' : '' }}"><i class="fas fa-plug sidebar-icone"></i><span class="sidebar-label">Hórus / SUS</span></a>
+                        <a href="{{ route('integracoes.horus') }}" class="sidebar-sublink {{ request()->routeIs('integracoes.horus*') ? 'active' : '' }}"><i class="fas fa-file-export sidebar-icone"></i><span class="sidebar-label">Hórus / SUS</span></a>
                         @endif
                         <a href="{{ route('auditoria.index') }}" class="sidebar-sublink {{ request()->routeIs('auditoria.index') ? 'active' : '' }}"><i class="fas fa-shield-alt sidebar-icone"></i><span class="sidebar-label">Auditoria</span></a>
                         <a href="{{ route('auditoria.chat') }}" class="sidebar-sublink {{ request()->routeIs('auditoria.chat') ? 'active' : '' }}"><i class="fas fa-comment-dots sidebar-icone"></i><span class="sidebar-label">Auditoria chat</span></a>

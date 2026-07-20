@@ -4,12 +4,36 @@
 
 @section('content')
 <div class="container-fluid px-0">
-    <div class="mb-4">
-        <h1 class="farpop-page-title"><i class="fas fa-clipboard-check me-2"></i>Inventário por lote</h1>
-        <p class="farpop-page-subtitle">Informe a quantidade contada fisicamente. O sistema gera ajuste automático quando houver diferença.</p>
+    <div class="mb-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+            <h1 class="farpop-page-title"><i class="fas fa-clipboard-check me-2"></i>Inventário por lote</h1>
+            <p class="farpop-page-subtitle">Informe a quantidade contada fisicamente. O sistema gera ajuste automático quando houver diferença.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ route('relatorios.exportar', array_filter(['tipo' => 'inventario', 'clinica_id' => $clinicaId ?: null])) }}" class="btn btn-outline-success btn-sm"><i class="fas fa-file-csv me-1"></i> Planilha CSV</a>
+            <a href="{{ route('relatorios.imprimir', array_filter(['tipo' => 'inventario', 'clinica_id' => $clinicaId ?: null])) }}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="fas fa-print me-1"></i> Imprimir</a>
+        </div>
     </div>
 
     @include('partials.flash')
+
+    @if($clinicas->isNotEmpty())
+    <div class="card mb-3">
+        <div class="card-body py-3">
+            <form method="GET" action="{{ route('inventario.index') }}" class="row g-2 align-items-end">
+                <div class="col-md-6 col-lg-4">
+                    <label class="form-label small mb-1">Unidade</label>
+                    <select name="clinica_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">Todas as unidades</option>
+                        @foreach($clinicas as $c)
+                            <option value="{{ $c->id }}" @selected($clinicaId === (int) $c->id)>{{ $c->nome }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
 
     <form method="POST" action="{{ route('inventario.store') }}">
         @csrf

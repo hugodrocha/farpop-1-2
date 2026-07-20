@@ -34,6 +34,7 @@ use App\Http\Controllers\FornecedorController;
 use App\Http\Controllers\FabricanteController;
 use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\HorusController;
+use App\Http\Controllers\IntegracaoController;
 use App\Http\Controllers\TransferenciaEntreUnidadesController;
 use Illuminate\Support\Facades\Route;
 
@@ -150,6 +151,7 @@ Route::middleware('farpop.auth')->group(function () {
         Route::post('/avisos-barra', [AvisoBarraController::class, 'store'])->name('avisos.store');
         Route::post('/avisos-barra/{id}/encerrar', [AvisoBarraController::class, 'encerrar'])->name('avisos.encerrar');
 
+        Route::get('/integracoes', [IntegracaoController::class, 'index'])->name('integracoes.index');
         Route::get('/integracoes/horus', [HorusController::class, 'index'])->name('integracoes.horus');
         Route::get('/integracoes/horus/exportar', [HorusController::class, 'exportar'])->name('integracoes.horus.exportar');
         Route::post('/configuracoes/backup', [ConfiguracaoController::class, 'backup'])->name('configuracoes.backup');

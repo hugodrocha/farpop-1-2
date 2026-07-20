@@ -2,8 +2,13 @@
 @section('title', 'Exportação Hórus / SUS')
 @section('content')
 <div class="container-fluid px-0" style="max-width:720px">
-    <h1 class="farpop-page-title mb-2"><i class="fas fa-plug me-2"></i>Hórus / SUS</h1>
-    <p class="farpop-page-subtitle mb-4">Exportação CSV de movimentações para integração manual com BNAFAR/Hórus.</p>
+    <div class="mb-4 d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+            <h1 class="farpop-page-title mb-2"><i class="fas fa-file-export me-2"></i>Hórus / SUS</h1>
+            <p class="farpop-page-subtitle mb-0">Exportação CSV de movimentações para integração manual (legado).</p>
+        </div>
+        <a href="{{ route('integracoes.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-plug me-1"></i> Hub de integrações</a>
+    </div>
     @include('partials.flash')
     <div class="card"><div class="card-body">
         <form method="GET" action="{{ route('integracoes.horus.exportar') }}">

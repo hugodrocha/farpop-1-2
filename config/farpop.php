@@ -158,7 +158,7 @@ return [
         'integracoes' => [
             'label' => 'Integrações',
             'icone' => 'fa-plug',
-            'status' => 'parcial',
+            'status' => 'ativo',
             'perfis' => ['superuser', 'admin'],
             'submodulos' => [
                 'pec' => ['label' => 'PEC / e-SUS (busca cidadão)', 'status' => 'ativo'],
@@ -258,6 +258,15 @@ return [
                 'Relatório de inventário por lote (CSV e impressão)',
                 'Fabricantes sugeridos nas entradas',
                 'Módulos cadastros, estoque, transferências e alertas ativos',
+            ],
+            'status' => 'concluido',
+        ],
+        'fase_8' => [
+            'titulo' => 'Dashboard e integrações',
+            'itens' => [
+                'Hub de integrações (PEC, Hórus legado, código de barras)',
+                'Dashboard com KPIs ligados à central de alertas',
+                'Inventário com filtro por unidade e exportação de planilha',
             ],
             'status' => 'concluido',
         ],

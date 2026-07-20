@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AlertaOperacionalService;
 use App\Services\AlertaVencimentoService;
 use App\Services\DashboardService;
 use App\Services\EstoqueService;
@@ -16,6 +17,7 @@ class DashboardController extends Controller
         $perfil = session('perfil', '');
         $clinicaId = (int) session('clinica_id', 0);
         $visaoGlobal = DashboardService::visaoGlobal($perfil, $clinicaId);
+        $escopoAlertas = $visaoGlobal ? null : $clinicaId;
 
         if ($visaoGlobal) {
             $totais = DashboardService::dadosGlobais();
@@ -26,6 +28,7 @@ class DashboardController extends Controller
             );
             $ultimasSaidas = DashboardService::ultimasSaidas(null, 8);
             $alertasVencimento = AlertaVencimentoService::contar(null);
+            $alertasResumo = AlertaOperacionalService::resumo(null);
         } else {
             $totais = DashboardService::dadosUnidade($clinicaId);
             $totais['clinica_nome'] = session('clinica_nome');
@@ -33,6 +36,7 @@ class DashboardController extends Controller
             $graficoSaidas = '';
             $ultimasSaidas = DashboardService::ultimasSaidas($clinicaId, 8);
             $alertasVencimento = AlertaVencimentoService::contar($clinicaId);
+            $alertasResumo = AlertaOperacionalService::resumo($clinicaId);
         }
 
         return view('dashboard.index', compact(
@@ -42,7 +46,9 @@ class DashboardController extends Controller
             'graficoSaidas',
             'ultimasSaidas',
             'perfil',
-            'alertasVencimento'
+            'alertasVencimento',
+            'alertasResumo',
+            'escopoAlertas'
         ));
     }
 
