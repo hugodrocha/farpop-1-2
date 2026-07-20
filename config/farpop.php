@@ -301,12 +301,14 @@ return [
             'status' => 'concluido',
         ],
         'fase_12' => [
-            'titulo' => 'Consolidação final (planejada)',
+            'titulo' => 'Consolidação final',
             'itens' => [
-                'Indicadores gerenciais mensais',
-                'Revisão de documentação e polish operacional',
+                'Painel de indicadores gerenciais mensais',
+                'Comparativo de 6 meses e exportação CSV',
+                'Correção da solicitação com bipagem e autocomplete',
+                'Roadmap FARPOP 1.1 concluído (12 fases)',
             ],
-            'status' => 'planejado',
+            'status' => 'concluido',
         ],
     ],
 ];

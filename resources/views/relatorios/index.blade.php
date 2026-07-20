@@ -6,7 +6,7 @@
 <div class="container-fluid px-0">
     <div class="mb-4">
         <h1 class="farpop-page-title"><i class="fas fa-chart-bar me-2"></i>Relatórios</h1>
-        <p class="farpop-page-subtitle">Exportação em CSV (Excel) e impressão/PDF. Use os filtros opcionais de unidade e período.</p>
+        <p class="farpop-page-subtitle">Exportação em CSV (Excel) e impressão/PDF. <a href="{{ route('indicadores.index') }}">Indicadores gerenciais mensais</a>.</p>
     </div>
 
     @include('partials.flash')

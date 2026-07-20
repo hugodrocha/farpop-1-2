@@ -35,6 +35,7 @@ use App\Http\Controllers\FornecedorController;
 use App\Http\Controllers\FabricanteController;
 use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\HorusController;
+use App\Http\Controllers\IndicadorController;
 use App\Http\Controllers\IntegracaoController;
 use App\Http\Controllers\TransferenciaEntreUnidadesController;
 use Illuminate\Support\Facades\Route;
@@ -144,6 +145,10 @@ Route::middleware('farpop.auth')->group(function () {
         Route::get('/relatorios', [RelatorioController::class, 'index'])->name('relatorios.index');
         Route::get('/relatorios/exportar/{tipo}', [RelatorioController::class, 'exportar'])->name('relatorios.exportar');
         Route::get('/relatorios/imprimir/{tipo}', [RelatorioController::class, 'imprimir'])->name('relatorios.imprimir');
+
+        Route::get('/indicadores', [IndicadorController::class, 'index'])->name('indicadores.index');
+        Route::get('/indicadores/exportar', [IndicadorController::class, 'exportar'])->name('indicadores.exportar');
+        Route::get('/indicadores/imprimir', [IndicadorController::class, 'imprimir'])->name('indicadores.imprimir');
     });
 
     /* ── 11. Auditoria, alertas e configurações ──────────────────── */

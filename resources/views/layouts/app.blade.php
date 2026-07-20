@@ -143,6 +143,12 @@
                         </a>
                         <span class="sidebar-tooltip">Relatórios</span>
                     </div>
+                    <div class="sidebar-item">
+                        <a href="{{ route('indicadores.index') }}" class="sidebar-link {{ request()->routeIs('indicadores.*') ? 'active' : '' }}">
+                            <i class="fas fa-chart-pie sidebar-icone"></i><span class="sidebar-label">Indicadores</span>
+                        </a>
+                        <span class="sidebar-tooltip">Indicadores gerenciais</span>
+                    </div>
                     @endif
 
                     @if($podeCadastros)
