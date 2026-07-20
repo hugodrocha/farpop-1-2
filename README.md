@@ -31,6 +31,7 @@ O FARPOP cobre cadastros, controle de estoque por lote (PEPS/FIFO), dispensa ao 
 | **7** | Central de alertas, inventário por lote, fabricantes nas entradas | Concluída |
 | **8** | Hub de integrações, dashboard com alertas, inventário aprimorado | Concluída |
 | **9** | Curva ABC de consumo, importação de inventário via CSV | Concluída |
+| **10** | Ruptura/reposição, previsão de consumo, e-mail diário de alertas | Concluída |
 
 Detalhes dos módulos e perfis: `config/farpop.php`.
 
@@ -69,7 +70,7 @@ Detalhes dos módulos e perfis: `config/farpop.php`.
 ### Gestão e integrações
 
 - **Relatórios** — hub com exportação CSV e impressão (estoque, validade, dispensas, transferências, consumo mensal/anual, inventário por lote, curva ABC)
-- **Alertas** — central operacional (estoque baixo/crítico, validade, pendências de solicitações/transferências), barra de avisos
+- **Alertas** — central operacional (estoque baixo/crítico, validade, pendências, ruptura/reposição), barra de avisos, e-mail diário opcional
 - **Chat interno** — widget flutuante, contatos, grupos, online/offline, auditoria de chat
 - **PEC/e-SUS** — busca de cidadão por CPF (PostgreSQL)
 - **Integrações** — hub PEC/e-SUS, exportação Hórus legada e código de barras
@@ -193,6 +194,7 @@ php C:\laravel\farpop-1-1\artisan schedule:run
 ```
 
 Reservas vencidas são expiradas automaticamente às **01:00**.
+Alertas por e-mail são enviados às **07:00** (se habilitado em Configurações).
 
 ---
 
@@ -202,7 +204,8 @@ Reservas vencidas são expiradas automaticamente às **01:00**.
 |---------|-----------|
 | `php artisan farpop:backup-banco` | Gera dump SQL do MySQL |
 | `php artisan farpop:backup-banco --keep=30` | Mantém backups por 30 dias |
-| `php artisan schedule:run` | Executa tarefas agendadas (backup, reservas) |
+| `php artisan farpop:alertas-email` | Envia resumo diário de alertas por e-mail |
+| `php artisan schedule:run` | Executa tarefas agendadas (backup, reservas, alertas) |
 
 ---
 
@@ -227,6 +230,7 @@ Reservas vencidas são expiradas automaticamente às **01:00**.
 | Alertas (central) | `/alertas` |
 | Alertas estoque | `/alertas/estoque` |
 | Alertas pendências | `/alertas/pendencias` |
+| Alertas ruptura | `/alertas/ruptura` |
 | Alertas validade | `/alertas/vencimento` |
 | Relatórios | `/relatorios` |
 | Fornecedores | `/fornecedores` |

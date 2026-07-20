@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('farpop:backup-banco')->dailyAt('02:00');
+        $schedule->command('farpop:alertas-email')->dailyAt('07:00');
         $schedule->call(function (): void {
             \App\Services\ReservaService::expirarVencidas();
         })->dailyAt('01:00');

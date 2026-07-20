@@ -6,6 +6,7 @@ use App\Services\AlertaVencimentoService;
 use App\Services\LoteService;
 use App\Services\ModuloService;
 use App\Services\RelatorioService;
+use App\Services\ReposicaoService;
 use App\Services\SaidaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -72,6 +73,13 @@ class RelatorioController extends Controller
                     'ate' => $ate,
                 ]))
                 : $this->exportarCurvaAbc($clinicaId, $de, $ate),
+            'reposicao' => $formato === 'pdf'
+                ? redirect()->route('relatorios.imprimir', array_filter([
+                    'tipo' => 'reposicao',
+                    'clinica_id' => $clinicaId ?: null,
+                    'filtro' => $request->query('filtro'),
+                ]))
+                : $this->exportarReposicao($clinicaId, $request->query('filtro')),
             default => redirect()->route('relatorios.index')->withErrors(['error' => 'Relatório inválido.']),
         };
     }
@@ -130,6 +138,20 @@ class RelatorioController extends Controller
                 : 'Últimos 12 meses';
 
             return view('relatorios.print.curva-abc', compact('dados', 'resumo', 'titulo', 'periodo'));
+        }
+
+        if ($tipo === 'reposicao') {
+            $filtro = $request->query('filtro', 'reposicao');
+            if (!in_array($filtro, ['todos', 'ruptura', 'critico', 'atencao', 'reposicao'], true)) {
+                $filtro = 'reposicao';
+            }
+            $dados = ReposicaoService::analisar($clinicaId ?: null, $filtro);
+            $contagens = ReposicaoService::contar($clinicaId ?: null);
+            $titulo = 'Previsão de reposição';
+            $diasHistorico = ReposicaoService::diasHistorico();
+            $diasCobertura = ReposicaoService::diasCobertura();
+
+            return view('relatorios.print.reposicao', compact('dados', 'contagens', 'titulo', 'diasHistorico', 'diasCobertura'));
         }
 
         abort(404);
@@ -344,6 +366,30 @@ class RelatorioController extends Controller
         return RelatorioService::exportarCsv(
             'curva_abc_' . date('Y-m-d') . '.csv',
             ['Ranking', 'Unidade', 'Código', 'Medicamento', 'Dosagem', 'Total dispensado', '% individual', '% acumulado', 'Classe'],
+            $rows
+        );
+    }
+
+    private function exportarReposicao(int $clinicaId, ?string $filtro)
+    {
+        $filtro = in_array($filtro, ['todos', 'ruptura', 'critico', 'atencao'], true) ? $filtro : 'reposicao';
+
+        $rows = ReposicaoService::analisar($clinicaId ?: null, $filtro)->map(fn ($r) => [
+            $r->unidade,
+            $r->codigo,
+            $r->medicamento,
+            $r->dosagem ?: '',
+            $r->quantidade,
+            $r->estoque_minimo,
+            $r->consumo_medio_dia,
+            $r->dias_restantes ?? '',
+            $r->qtd_sugerida,
+            $r->situacao_label,
+        ])->all();
+
+        return RelatorioService::exportarCsv(
+            'reposicao_' . date('Y-m-d') . '.csv',
+            ['Unidade', 'Código', 'Medicamento', 'Dosagem', 'Estoque', 'Mínimo', 'Cons./dia', 'Dias rest.', 'Qtd sugerida', 'Situação'],
             $rows
         );
     }

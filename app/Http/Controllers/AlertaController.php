@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\AlertaOperacionalService;
 use App\Services\AlertaVencimentoService;
 use App\Services\ModuloService;
+use App\Services\ReposicaoService;
 use Illuminate\Http\Request;
 
 class AlertaController extends Controller
@@ -54,6 +55,27 @@ class AlertaController extends Controller
         $resumo = AlertaOperacionalService::resumo($clinicaId ?: null);
 
         return view('alertas.pendencias', compact('pendencias', 'resumo', 'clinicaId'));
+    }
+
+    public function ruptura(Request $request)
+    {
+        $perfil = (string) $request->session()->get('perfil', '');
+        if (!ModuloService::podeAcessarSubmodulo($perfil, 'alertas', 'ruptura')) {
+            return redirect()->route('dashboard')->withErrors(['error' => 'Sem permissão.']);
+        }
+
+        $clinicaId = $this->clinicaEscopo($request);
+        $filtro = $request->query('filtro', 'todos');
+        if (!in_array($filtro, ['todos', 'ruptura', 'critico', 'atencao'], true)) {
+            $filtro = 'todos';
+        }
+
+        $itens = ReposicaoService::analisar($clinicaId ?: null, $filtro === 'todos' ? 'todos' : $filtro);
+        $contagens = ReposicaoService::contar($clinicaId ?: null);
+        $diasHistorico = ReposicaoService::diasHistorico();
+        $diasCobertura = ReposicaoService::diasCobertura();
+
+        return view('alertas.ruptura', compact('itens', 'contagens', 'filtro', 'clinicaId', 'diasHistorico', 'diasCobertura'));
     }
 
     public function vencimento(Request $request)

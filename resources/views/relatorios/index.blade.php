@@ -60,7 +60,7 @@
                         <div class="mt-auto d-flex flex-wrap gap-2">
                             @if(in_array($rel['status'], ['ativo', 'parcial'], true))
                                 <a href="#" class="btn btn-sm btn-outline-success btn-export" data-tipo="{{ $rel['slug'] }}" data-formato="csv"><i class="fas fa-file-csv me-1"></i> Excel</a>
-                                @if(in_array($rel['slug'], ['estoque_geral', 'estoque_unidade', 'vencendo', 'vencidos', 'consumo_anual', 'inventario', 'curva_abc'], true))
+                                @if(in_array($rel['slug'], ['estoque_geral', 'estoque_unidade', 'vencendo', 'vencidos', 'consumo_anual', 'inventario', 'curva_abc', 'reposicao'], true))
                                     <a href="#" class="btn btn-sm btn-outline-secondary btn-export" data-tipo="{{ $rel['slug'] }}" data-formato="pdf"><i class="fas fa-print me-1"></i> PDF</a>
                                 @endif
                             @else

@@ -37,6 +37,9 @@ class AlertaOperacionalService
             $reservasQ->where('clinica_id', $clinicaId);
         }
 
+        $reservasAtivas = Schema::hasTable('reservas_medicamentos') ? (int) $reservasQ->count() : 0;
+        $reposicao = ReposicaoService::contar($clinicaId);
+
         return [
             'estoque_critico' => $estoque['critico'],
             'estoque_atencao' => $estoque['atencao'],
@@ -45,7 +48,10 @@ class AlertaOperacionalService
             'dias_vencimento' => $venc['dias'],
             'transf_pendentes' => (int) $transfQ->count(),
             'solicitacoes_pendentes' => $solicitacoesPendentes,
-            'reservas_ativas' => Schema::hasTable('reservas_medicamentos') ? (int) $reservasQ->count() : 0,
+            'reservas_ativas' => $reservasAtivas,
+            'ruptura' => $reposicao['ruptura'],
+            'reposicao_critico' => $reposicao['critico'],
+            'reposicao_atencao' => $reposicao['atencao'],
         ];
     }
 

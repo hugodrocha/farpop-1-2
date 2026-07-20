@@ -123,6 +123,7 @@ return [
                 'avisos_barra' => ['label' => 'Barra de avisos', 'status' => 'ativo'],
                 'vencimento' => ['label' => 'Medicamentos vencendo/vencidos', 'status' => 'ativo'],
                 'pendencias' => ['label' => 'Solicitações e transferências pendentes', 'status' => 'ativo'],
+                'ruptura' => ['label' => 'Ruptura e previsão de reposição', 'status' => 'ativo'],
             ],
         ],
         'relatorios' => [
@@ -276,6 +277,16 @@ return [
                 'Relatório curva ABC de consumo (CSV e impressão)',
                 'Importação de inventário via CSV com ID de lote',
                 'Planilha de inventário com coluna ID Lote para reimportação',
+            ],
+            'status' => 'concluido',
+        ],
+        'fase_10' => [
+            'titulo' => 'Ruptura, reposição e e-mail',
+            'itens' => [
+                'Previsão de reposição com base no consumo médio',
+                'Alertas de ruptura e quantidade sugerida',
+                'Relatório de reposição (CSV e impressão)',
+                'E-mail diário de alertas (comando agendado)',
             ],
             'status' => 'concluido',
         ],

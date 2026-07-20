@@ -106,6 +106,7 @@ Route::middleware('farpop.auth')->group(function () {
         Route::get('/alertas', [AlertaController::class, 'index'])->name('alertas.index');
         Route::get('/alertas/estoque', [AlertaController::class, 'estoque'])->name('alertas.estoque');
         Route::get('/alertas/pendencias', [AlertaController::class, 'pendencias'])->name('alertas.pendencias');
+        Route::get('/alertas/ruptura', [AlertaController::class, 'ruptura'])->name('alertas.ruptura');
         Route::get('/alertas/vencimento', [AlertaController::class, 'vencimento'])->name('alertas.vencimento');
 
         Route::get('/lotes', [LoteController::class, 'index'])->name('lotes.index');
@@ -156,6 +157,7 @@ Route::middleware('farpop.auth')->group(function () {
         Route::get('/integracoes/horus', [HorusController::class, 'index'])->name('integracoes.horus');
         Route::get('/integracoes/horus/exportar', [HorusController::class, 'exportar'])->name('integracoes.horus.exportar');
         Route::post('/configuracoes/backup', [ConfiguracaoController::class, 'backup'])->name('configuracoes.backup');
+        Route::post('/configuracoes/alerta-email-teste', [ConfiguracaoController::class, 'testarAlertaEmail'])->name('configuracoes.alerta-email-teste');
     });
 
     /* ── Chat interno ──────────────────────────────────────────────── */

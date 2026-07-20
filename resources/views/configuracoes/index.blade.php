@@ -58,6 +58,43 @@
                                 <option value="0" {{ $chatVal == '0' ? 'selected' : '' }}>Desabilitado</option>
                             </select>
                         </div>
+                        <hr>
+                        <h3 class="h6 mb-3">Previsão de reposição</h3>
+                        <div class="mb-3">
+                            <label class="form-label">Histórico de consumo (dias)</label>
+                            <input type="number" name="reposicao_dias_historico" class="form-control"
+                                   value="{{ old('reposicao_dias_historico', $configs->get('reposicao_dias_historico')?->valor ?? 90) }}"
+                                   min="30" max="365" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Meta de cobertura (dias)</label>
+                            <input type="number" name="reposicao_dias_cobertura" class="form-control"
+                                   value="{{ old('reposicao_dias_cobertura', $configs->get('reposicao_dias_cobertura')?->valor ?? 30) }}"
+                                   min="7" max="180" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Alerta crítico (dias restantes)</label>
+                            <input type="number" name="reposicao_dias_critico" class="form-control"
+                                   value="{{ old('reposicao_dias_critico', $configs->get('reposicao_dias_critico')?->valor ?? 7) }}"
+                                   min="1" max="30" required>
+                        </div>
+                        <hr>
+                        <h3 class="h6 mb-3">E-mail diário de alertas</h3>
+                        <div class="mb-3">
+                            <label class="form-label">Enviar resumo por e-mail</label>
+                            @php $emailVal = old('alerta_email_habilitado', $configs->get('alerta_email_habilitado')?->valor ?? '0'); @endphp
+                            <select name="alerta_email_habilitado" class="form-select" required>
+                                <option value="0" {{ $emailVal == '0' ? 'selected' : '' }}>Desabilitado</option>
+                                <option value="1" {{ $emailVal == '1' ? 'selected' : '' }}>Habilitado (07:00)</option>
+                            </select>
+                            <div class="form-text">Destinatários: admin/gestor com e-mail cadastrado, ou lista extra abaixo.</div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">E-mails extras (opcional)</label>
+                            <input type="text" name="alerta_email_destino" class="form-control"
+                                   value="{{ old('alerta_email_destino', $configs->get('alerta_email_destino')?->valor ?? '') }}"
+                                   placeholder="email1@prefeitura.gov.br, email2@...">
+                        </div>
                         <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Salvar configurações</button>
                     </form>
                 </div>
@@ -87,6 +124,17 @@
                             <div class="form-text">Informe um CPF para testar a busca de cidadão no PEC.</div>
                         </div>
                         <button type="submit" class="btn btn-outline-primary"><i class="fas fa-vial me-1"></i> Testar conexão PEC</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header bg-primary"><i class="fas fa-envelope me-2"></i>E-mail de alertas</div>
+                <div class="card-body">
+                    <p class="small text-muted">Agendado diariamente às <strong>07:00</strong> quando habilitado. Configure o SMTP no <code>.env</code> (MAIL_*).</p>
+                    <form method="POST" action="{{ route('configuracoes.alerta-email-teste') }}">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-primary"><i class="fas fa-paper-plane me-1"></i> Enviar teste agora</button>
                     </form>
                 </div>
             </div>

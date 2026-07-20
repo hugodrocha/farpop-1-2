@@ -51,6 +51,26 @@
             </a>
         </div>
         <div class="col-md-4 col-lg-3">
+            <a href="{{ route('alertas.ruptura', ['filtro' => 'ruptura']) }}" class="text-decoration-none">
+                <div class="card border-dark h-100">
+                    <div class="card-body">
+                        <div class="text-muted small">Ruptura (zerado)</div>
+                        <div class="fs-3 fw-bold">{{ $resumo['ruptura'] }}</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4 col-lg-3">
+            <a href="{{ route('alertas.ruptura', ['filtro' => 'critico']) }}" class="text-decoration-none">
+                <div class="card border-danger h-100">
+                    <div class="card-body">
+                        <div class="text-muted small">Reposição crítica</div>
+                        <div class="fs-3 fw-bold text-danger">{{ $resumo['reposicao_critico'] }}</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4 col-lg-3">
             <a href="{{ route('alertas.pendencias') }}" class="text-decoration-none">
                 <div class="card h-100">
                     <div class="card-body">
