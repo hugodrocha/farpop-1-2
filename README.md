@@ -4,6 +4,9 @@ Sistema de **gestão farmacêutica municipal** da Prefeitura de Mesquita (Farmá
 
 O FARPOP cobre cadastros, controle de estoque por lote (PEPS/FIFO), dispensa ao paciente, transferências (matriz, entre unidades e devolução), solicitações com aprovação, relatórios, alertas, chat interno, integrações (PEC/e-SUS, exportação Hórus) e backup do banco.
 
+**Repositório oficial (1.2):** https://github.com/hugodrocha/farpop-1-2  
+**Repositório congelado (1.1):** https://github.com/hugodrocha/farpop-1-1 — não recebe mais commits da linha 1.2.
+
 ---
 
 ## Stack
