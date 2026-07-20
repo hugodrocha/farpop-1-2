@@ -285,6 +285,65 @@ class RelatorioService
         return [$y - 4, $y];
     }
 
+    /**
+     * Curva ABC de consumo (dispensas) — classificação Pareto A/B/C.
+     */
+    public static function curvaAbc(?int $clinicaId = null, ?string $de = null, ?string $ate = null): Collection
+    {
+        $q = DB::table('saidas_medicamentos as s')
+            ->join('medicamentos as m', 'm.id', '=', 's.medicamento_id')
+            ->join('clinicas as c', 'c.id', '=', 's.clinica_id')
+            ->select(
+                'c.nome as unidade',
+                'm.codigo',
+                'm.nome as medicamento',
+                'm.dosagem',
+                DB::raw('SUM(s.quantidade) as total')
+            )
+            ->groupBy('c.nome', 'm.codigo', 'm.nome', 'm.dosagem')
+            ->orderByDesc('total');
+
+        if ($clinicaId > 0) {
+            $q->where('s.clinica_id', $clinicaId);
+        }
+        if ($de) {
+            $q->whereDate('s.data_saida', '>=', $de);
+        }
+        if ($ate) {
+            $q->whereDate('s.data_saida', '<=', $ate);
+        }
+        if (!$de && !$ate) {
+            $q->where('s.data_saida', '>=', today()->subMonths(12));
+        }
+
+        $rows = $q->get();
+        $grandTotal = (float) $rows->sum('total');
+        $acumulado = 0.0;
+
+        return $rows->values()->map(function ($row, $index) use (&$acumulado, $grandTotal) {
+            $pct = $grandTotal > 0 ? ((float) $row->total / $grandTotal) * 100 : 0;
+            $acumulado += $pct;
+            $row->percentual = round($pct, 2);
+            $row->percentual_acumulado = round($acumulado, 2);
+            $row->classe = $acumulado <= 80.0001 ? 'A' : ($acumulado <= 95.0001 ? 'B' : 'C');
+            $row->ranking = $index + 1;
+
+            return $row;
+        });
+    }
+
+    /**
+     * @return array{A: int, B: int, C: int}
+     */
+    public static function curvaAbcResumo(Collection $dados): array
+    {
+        return [
+            'A' => $dados->where('classe', 'A')->count(),
+            'B' => $dados->where('classe', 'B')->count(),
+            'C' => $dados->where('classe', 'C')->count(),
+        ];
+    }
+
     public static function inventarioLotes(?int $clinicaId = null, bool $somenteComSaldo = true): Collection
     {
         LoteService::inicializar();

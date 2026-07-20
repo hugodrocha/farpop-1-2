@@ -35,6 +35,25 @@
     </div>
     @endif
 
+    <div class="card mb-3">
+        <div class="card-body">
+            <h2 class="h6 mb-2"><i class="fas fa-file-import me-1"></i> Importar planilha CSV</h2>
+            <p class="small text-muted mb-3">Exporte a planilha, preencha a coluna <strong>Qtd contada</strong> (ou use o <strong>ID Lote</strong>) e reimporte para aplicar os ajustes automaticamente.</p>
+            <form method="POST" action="{{ route('inventario.importar') }}" enctype="multipart/form-data" class="row g-2 align-items-end">
+                @csrf
+                @if($clinicas->isNotEmpty())
+                <input type="hidden" name="clinica_id" value="{{ $clinicaId }}">
+                @endif
+                <div class="col-md-6 col-lg-5">
+                    <input type="file" name="arquivo" class="form-control form-control-sm" accept=".csv,.txt" required>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-sm btn-outline-primary"><i class="fas fa-upload me-1"></i> Importar CSV</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <form method="POST" action="{{ route('inventario.store') }}">
         @csrf
         <div class="card">

@@ -30,6 +30,7 @@ O FARPOP cobre cadastros, controle de estoque por lote (PEPS/FIFO), dispensa ao 
 | **6** | Consumo anual (CSV/impressão), etiquetas CODE128 | Concluída |
 | **7** | Central de alertas, inventário por lote, fabricantes nas entradas | Concluída |
 | **8** | Hub de integrações, dashboard com alertas, inventário aprimorado | Concluída |
+| **9** | Curva ABC de consumo, importação de inventário via CSV | Concluída |
 
 Detalhes dos módulos e perfis: `config/farpop.php`.
 
@@ -67,7 +68,7 @@ Detalhes dos módulos e perfis: `config/farpop.php`.
 
 ### Gestão e integrações
 
-- **Relatórios** — hub com exportação CSV e impressão (estoque, validade, dispensas, transferências, consumo mensal/anual, inventário por lote)
+- **Relatórios** — hub com exportação CSV e impressão (estoque, validade, dispensas, transferências, consumo mensal/anual, inventário por lote, curva ABC)
 - **Alertas** — central operacional (estoque baixo/crítico, validade, pendências de solicitações/transferências), barra de avisos
 - **Chat interno** — widget flutuante, contatos, grupos, online/offline, auditoria de chat
 - **PEC/e-SUS** — busca de cidadão por CPF (PostgreSQL)

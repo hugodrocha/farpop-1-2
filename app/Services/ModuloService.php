@@ -119,6 +119,7 @@ class ModuloService
             ['slug' => 'inventario', 'label' => 'Inventário (lotes)', 'status' => 'ativo'],
             ['slug' => 'consumo_mensal', 'label' => 'Consumo mensal', 'status' => 'ativo'],
             ['slug' => 'consumo_anual', 'label' => 'Consumo anual', 'status' => 'ativo'],
+            ['slug' => 'curva_abc', 'label' => 'Curva ABC (consumo)', 'status' => 'ativo'],
         ];
     }
 }

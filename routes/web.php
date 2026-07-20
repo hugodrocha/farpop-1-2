@@ -114,6 +114,7 @@ Route::middleware('farpop.auth')->group(function () {
         Route::post('/ajustes', [AjusteController::class, 'store'])->name('ajustes.store');
         Route::get('/inventario', [InventarioController::class, 'index'])->name('inventario.index');
         Route::post('/inventario', [InventarioController::class, 'store'])->name('inventario.store');
+        Route::post('/inventario/importar', [InventarioController::class, 'importar'])->name('inventario.importar');
         Route::get('/movimentacoes', [MovimentacaoController::class, 'index'])->name('movimentacoes.index');
     });
 

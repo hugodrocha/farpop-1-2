@@ -270,5 +270,14 @@ return [
             ],
             'status' => 'concluido',
         ],
+        'fase_9' => [
+            'titulo' => 'Análise e inventário em lote',
+            'itens' => [
+                'Relatório curva ABC de consumo (CSV e impressão)',
+                'Importação de inventário via CSV com ID de lote',
+                'Planilha de inventário com coluna ID Lote para reimportação',
+            ],
+            'status' => 'concluido',
+        ],
     ],
 ];

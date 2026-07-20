@@ -64,6 +64,14 @@ class RelatorioController extends Controller
                     'clinica_id' => $clinicaId ?: null,
                 ]))
                 : $this->exportarInventario($clinicaId),
+            'curva_abc' => $formato === 'pdf'
+                ? redirect()->route('relatorios.imprimir', array_filter([
+                    'tipo' => 'curva_abc',
+                    'clinica_id' => $clinicaId ?: null,
+                    'de' => $de,
+                    'ate' => $ate,
+                ]))
+                : $this->exportarCurvaAbc($clinicaId, $de, $ate),
             default => redirect()->route('relatorios.index')->withErrors(['error' => 'Relatório inválido.']),
         };
     }
@@ -109,6 +117,19 @@ class RelatorioController extends Controller
             $titulo = 'Planilha de inventário (lotes)';
 
             return view('relatorios.print.inventario', compact('dados', 'titulo'));
+        }
+
+        if ($tipo === 'curva_abc') {
+            $de = $request->query('de');
+            $ate = $request->query('ate');
+            $dados = RelatorioService::curvaAbc($clinicaId ?: null, $de, $ate);
+            $resumo = RelatorioService::curvaAbcResumo($dados);
+            $titulo = 'Curva ABC de consumo';
+            $periodo = $de || $ate
+                ? trim(($de ? date('d/m/Y', strtotime($de)) : '…') . ' — ' . ($ate ? date('d/m/Y', strtotime($ate)) : '…'))
+                : 'Últimos 12 meses';
+
+            return view('relatorios.print.curva-abc', compact('dados', 'resumo', 'titulo', 'periodo'));
         }
 
         abort(404);
@@ -287,6 +308,7 @@ class RelatorioController extends Controller
         LoteService::inicializar();
 
         $rows = RelatorioService::inventarioLotes($clinicaId ?: null)->map(fn ($r) => [
+            $r->lote_id,
             $r->unidade,
             $r->codigo,
             $r->medicamento,
@@ -300,7 +322,28 @@ class RelatorioController extends Controller
 
         return RelatorioService::exportarCsv(
             'inventario_lotes_' . date('Y-m-d') . '.csv',
-            ['Unidade', 'Código', 'Medicamento', 'Dosagem', 'Lote', 'Fabricante', 'Validade', 'Qtd sistema', 'Qtd contada'],
+            ['ID Lote', 'Unidade', 'Código', 'Medicamento', 'Dosagem', 'Lote', 'Fabricante', 'Validade', 'Qtd sistema', 'Qtd contada'],
+            $rows
+        );
+    }
+
+    private function exportarCurvaAbc(int $clinicaId, ?string $de, ?string $ate)
+    {
+        $rows = RelatorioService::curvaAbc($clinicaId ?: null, $de, $ate)->map(fn ($r) => [
+            $r->ranking,
+            $r->unidade,
+            $r->codigo,
+            $r->medicamento,
+            $r->dosagem ?: '',
+            $r->total,
+            $r->percentual . '%',
+            $r->percentual_acumulado . '%',
+            $r->classe,
+        ])->all();
+
+        return RelatorioService::exportarCsv(
+            'curva_abc_' . date('Y-m-d') . '.csv',
+            ['Ranking', 'Unidade', 'Código', 'Medicamento', 'Dosagem', 'Total dispensado', '% individual', '% acumulado', 'Classe'],
             $rows
         );
     }
