@@ -109,6 +109,12 @@
             </div>
         </div>
     </form>
+
+    <datalist id="listaFabricantes">
+        @foreach($fabricantes ?? [] as $fab)
+            <option value="{{ $fab->nome }}">
+        @endforeach
+    </datalist>
 </div>
 @endsection
 
@@ -153,7 +159,7 @@
                     <input type="number" name="med_qtd[]" class="form-control form-control-sm" min="1" value="${item.qtd}" required data-idx="${idx}">
                 </td>
                 <td><input type="text" name="med_lote[]" class="form-control form-control-sm" value="${esc(item.lote || '')}" data-idx="${idx}"></td>
-                <td><input type="text" name="med_fabricante[]" class="form-control form-control-sm" value="${esc(item.fabricante || '')}" data-idx="${idx}"></td>
+                <td><input type="text" name="med_fabricante[]" class="form-control form-control-sm" list="listaFabricantes" value="${esc(item.fabricante || '')}" data-idx="${idx}"></td>
                 <td><input type="text" name="med_validade[]" class="form-control form-control-sm" value="${esc(item.validade || '')}" placeholder="MM/AAAA" data-idx="${idx}"></td>
                 <td><input type="text" name="med_obs[]" class="form-control form-control-sm" value="${esc(item.obs || '')}" data-idx="${idx}"></td>
                 <td><button type="button" class="btn btn-sm btn-outline-danger btn-remover" data-idx="${idx}"><i class="fas fa-trash"></i></button></td>`;

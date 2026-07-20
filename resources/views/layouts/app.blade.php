@@ -27,6 +27,7 @@
     $podeFornecedores = ModuloService::podeAcessarSubmodulo($perfil, 'cadastros', 'fornecedores');
     $podeSolicitacao = ModuloService::podeAcessarSubmodulo($perfil, 'transferencias', 'solicitacao');
     $podeEntreUnidades = ModuloService::podeAcessarSubmodulo($perfil, 'transferencias', 'entre_unidades');
+    $podeAlertas = ModuloService::podeAcessar($perfil, 'alertas');
     $podeHorus = ModuloService::podeAcessarSubmodulo($perfil, 'integracoes', 'horus');
     $logado = session()->has('usuario_id');
 @endphp
@@ -78,13 +79,13 @@
 
                     @if($podeOperacional)
                     <div class="sidebar-item">
-                        <button type="button" class="sidebar-dropdown-btn {{ request()->routeIs('estoque.*','entradas.*','saidas.*','pacientes.*','alertas.*','lotes.*','ajustes.*','inventario.*','movimentacoes.*','reservas.*') ? 'active' : '' }}" onclick="toggleSubmenu('menuEstoque', this)">
+                        <button type="button" class="sidebar-dropdown-btn {{ request()->routeIs('estoque.*','entradas.*','saidas.*','pacientes.*','lotes.*','ajustes.*','inventario.*','movimentacoes.*','reservas.*') ? 'active' : '' }}" onclick="toggleSubmenu('menuEstoque', this)">
                             <i class="fas fa-boxes sidebar-icone"></i><span class="sidebar-label">Estoque e dispensa</span>
-                            <span class="sidebar-seta {{ request()->routeIs('estoque.*','entradas.*','saidas.*','pacientes.*','alertas.*','lotes.*','ajustes.*','inventario.*','movimentacoes.*','reservas.*') ? 'open' : '' }}">▾</span>
+                            <span class="sidebar-seta {{ request()->routeIs('estoque.*','entradas.*','saidas.*','pacientes.*','lotes.*','ajustes.*','inventario.*','movimentacoes.*','reservas.*') ? 'open' : '' }}">▾</span>
                         </button>
                         <span class="sidebar-tooltip">Estoque e dispensa</span>
                     </div>
-                    <div id="menuEstoque" class="sidebar-submenu {{ request()->routeIs('estoque.*','entradas.*','saidas.*','pacientes.*','alertas.*','lotes.*','ajustes.*','inventario.*','movimentacoes.*','reservas.*') ? 'show' : '' }}">
+                    <div id="menuEstoque" class="sidebar-submenu {{ request()->routeIs('estoque.*','entradas.*','saidas.*','pacientes.*','lotes.*','ajustes.*','inventario.*','movimentacoes.*','reservas.*') ? 'show' : '' }}">
                         <a href="{{ route('estoque.index') }}" class="sidebar-sublink {{ request()->routeIs('estoque.*') ? 'active' : '' }}"><i class="fas fa-boxes sidebar-icone"></i><span class="sidebar-label">Consultar estoque</span></a>
                         <a href="{{ route('entradas.index') }}" class="sidebar-sublink {{ request()->routeIs('entradas.*') ? 'active' : '' }}"><i class="fas fa-arrow-down sidebar-icone"></i><span class="sidebar-label">Entradas</span></a>
                         <a href="{{ route('saidas.index') }}" class="sidebar-sublink {{ request()->routeIs('saidas.*') ? 'active' : '' }}"><i class="fas fa-pills sidebar-icone"></i><span class="sidebar-label">Dispensa</span></a>
@@ -92,9 +93,24 @@
                         @if($podePacientes)
                         <a href="{{ route('pacientes.index') }}" class="sidebar-sublink {{ request()->routeIs('pacientes.*') ? 'active' : '' }}"><i class="fas fa-user-injured sidebar-icone"></i><span class="sidebar-label">Pacientes</span></a>
                         @endif
-                        <a href="{{ route('alertas.vencimento') }}" class="sidebar-sublink {{ request()->routeIs('alertas.*') ? 'active' : '' }}"><i class="fas fa-calendar-times sidebar-icone"></i><span class="sidebar-label">Validade / vencimento</span></a>
                         <a href="{{ route('lotes.index') }}" class="sidebar-sublink {{ request()->routeIs('lotes.*','ajustes.*','inventario.*','movimentacoes.*') ? 'active' : '' }}"><i class="fas fa-layer-group sidebar-icone"></i><span class="sidebar-label">Lotes (PEPS)</span></a>
                     </div>
+
+                    @if($podeAlertas)
+                    <div class="sidebar-item">
+                        <button type="button" class="sidebar-dropdown-btn {{ request()->routeIs('alertas.*') ? 'active' : '' }}" onclick="toggleSubmenu('menuAlertas', this)">
+                            <i class="fas fa-bell sidebar-icone"></i><span class="sidebar-label">Alertas</span>
+                            <span class="sidebar-seta {{ request()->routeIs('alertas.*') ? 'open' : '' }}">▾</span>
+                        </button>
+                        <span class="sidebar-tooltip">Alertas</span>
+                    </div>
+                    <div id="menuAlertas" class="sidebar-submenu {{ request()->routeIs('alertas.*') ? 'show' : '' }}">
+                        <a href="{{ route('alertas.index') }}" class="sidebar-sublink {{ request()->routeIs('alertas.index') ? 'active' : '' }}"><i class="fas fa-bell sidebar-icone"></i><span class="sidebar-label">Central</span></a>
+                        <a href="{{ route('alertas.estoque') }}" class="sidebar-sublink {{ request()->routeIs('alertas.estoque') ? 'active' : '' }}"><i class="fas fa-exclamation-triangle sidebar-icone"></i><span class="sidebar-label">Estoque baixo</span></a>
+                        <a href="{{ route('alertas.vencimento') }}" class="sidebar-sublink {{ request()->routeIs('alertas.vencimento') ? 'active' : '' }}"><i class="fas fa-calendar-times sidebar-icone"></i><span class="sidebar-label">Validade</span></a>
+                        <a href="{{ route('alertas.pendencias') }}" class="sidebar-sublink {{ request()->routeIs('alertas.pendencias') ? 'active' : '' }}"><i class="fas fa-clock sidebar-icone"></i><span class="sidebar-label">Pendências</span></a>
+                    </div>
+                    @endif
 
                     <div class="sidebar-item">
                         <button type="button" class="sidebar-dropdown-btn {{ request()->routeIs('transferencias.*','solicitacoes.*') ? 'active' : '' }}" onclick="toggleSubmenu('menuTransferencias', this)">

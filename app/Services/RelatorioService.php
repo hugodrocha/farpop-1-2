@@ -285,6 +285,42 @@ class RelatorioService
         return [$y - 4, $y];
     }
 
+    public static function inventarioLotes(?int $clinicaId = null, bool $somenteComSaldo = true): Collection
+    {
+        LoteService::inicializar();
+
+        $q = DB::table('estoque_lotes as l')
+            ->join('medicamentos as m', 'm.id', '=', 'l.medicamento_id')
+            ->join('clinicas as c', 'c.id', '=', 'l.clinica_id')
+            ->select(
+                'c.nome as unidade',
+                'm.codigo',
+                'm.nome as medicamento',
+                'm.dosagem',
+                'l.lote',
+                'l.fabricante',
+                'l.validade',
+                'l.quantidade',
+                'l.id as lote_id'
+            )
+            ->orderBy('c.nome')
+            ->orderBy('m.nome')
+            ->orderBy('l.validade');
+
+        if ($clinicaId > 0) {
+            $q->where('l.clinica_id', $clinicaId);
+        }
+        if ($somenteComSaldo) {
+            $q->where('l.quantidade', '>', 0);
+        }
+
+        return $q->get()->map(function ($row) {
+            $row->validade_fmt = ValidadeService::formatar($row->validade);
+
+            return $row;
+        });
+    }
+
     public static function escopoClinica(Request $request): int
     {
         $perfil = (string) $request->session()->get('perfil', '');

@@ -10,6 +10,7 @@
             <p class="farpop-page-subtitle">Lotes com validade registrada em entradas, para medicamentos com estoque positivo. Alerta de vencimento: {{ $contagens['dias'] }} dias.</p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ route('alertas.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-bell me-1"></i> Central de alertas</a>
             <a href="{{ route('relatorios.exportar', ['tipo' => 'vencidos', 'clinica_id' => $clinicaId ?: null]) }}" class="btn btn-outline-danger btn-sm"><i class="fas fa-file-csv me-1"></i> CSV vencidos</a>
             <a href="{{ route('relatorios.exportar', ['tipo' => 'vencendo', 'clinica_id' => $clinicaId ?: null]) }}" class="btn btn-outline-warning btn-sm"><i class="fas fa-file-csv me-1"></i> CSV vencendo</a>
             <a href="{{ route('relatorios.imprimir', ['tipo' => 'vencendo', 'clinica_id' => $clinicaId ?: null]) }}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="fas fa-print me-1"></i> Imprimir</a>

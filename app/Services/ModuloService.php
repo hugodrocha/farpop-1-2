@@ -116,7 +116,7 @@ class ModuloService
             ['slug' => 'dispensa_medicamento', 'label' => 'Dispensa por medicamento', 'status' => 'ativo'],
             ['slug' => 'transferencias', 'label' => 'Transferências', 'status' => 'ativo'],
             ['slug' => 'movimentacoes', 'label' => 'Histórico de movimentações', 'status' => 'ativo'],
-            ['slug' => 'inventario', 'label' => 'Inventário', 'status' => 'planejado'],
+            ['slug' => 'inventario', 'label' => 'Inventário (lotes)', 'status' => 'ativo'],
             ['slug' => 'consumo_mensal', 'label' => 'Consumo mensal', 'status' => 'ativo'],
             ['slug' => 'consumo_anual', 'label' => 'Consumo anual', 'status' => 'ativo'],
         ];

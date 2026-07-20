@@ -102,6 +102,9 @@ Route::middleware('farpop.auth')->group(function () {
         Route::put('/pacientes/{id}', [PacienteController::class, 'update'])->name('pacientes.update');
         Route::get('/pacientes/{id}', [PacienteController::class, 'show'])->name('pacientes.show');
 
+        Route::get('/alertas', [AlertaController::class, 'index'])->name('alertas.index');
+        Route::get('/alertas/estoque', [AlertaController::class, 'estoque'])->name('alertas.estoque');
+        Route::get('/alertas/pendencias', [AlertaController::class, 'pendencias'])->name('alertas.pendencias');
         Route::get('/alertas/vencimento', [AlertaController::class, 'vencimento'])->name('alertas.vencimento');
 
         Route::get('/lotes', [LoteController::class, 'index'])->name('lotes.index');

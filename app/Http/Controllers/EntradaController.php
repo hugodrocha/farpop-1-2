@@ -39,8 +39,9 @@ class EntradaController extends Controller
         $clinicas = DB::table('clinicas')->where('ativo', 1)->orderBy('nome')->get();
         Fase4SchemaService::garantir();
         $fornecedores = DB::table('fornecedores')->where('ativo', 1)->orderBy('nome')->get();
+        $fabricantes = DB::table('fabricantes')->where('ativo', 1)->orderBy('nome')->get();
 
-        return view('entradas.create', compact('clinicas', 'clinicaFixa', 'fornecedores'));
+        return view('entradas.create', compact('clinicas', 'clinicaFixa', 'fornecedores', 'fabricantes'));
     }
 
     public function store(Request $request)

@@ -28,6 +28,7 @@ O FARPOP cobre cadastros, controle de estoque por lote (PEPS/FIFO), dispensa ao 
 | **4** | Solicitação → aprovação → separação → envio, fornecedores/fabricantes, reservas, Hórus, backup | Concluída |
 | **5** | Transferência entre unidades, devolução unidade → matriz, tipos de movimentação | Concluída |
 | **6** | Consumo anual (CSV/impressão), etiquetas CODE128 | Concluída |
+| **7** | Central de alertas, inventário por lote, fabricantes nas entradas | Concluída |
 
 Detalhes dos módulos e perfis: `config/farpop.php`.
 
@@ -65,8 +66,8 @@ Detalhes dos módulos e perfis: `config/farpop.php`.
 
 ### Gestão e integrações
 
-- **Relatórios** — hub com exportação CSV e impressão (estoque, validade, dispensas, transferências, consumo mensal/anual)
-- **Alertas** — estoque baixo/crítico, vencimento, barra de avisos
+- **Relatórios** — hub com exportação CSV e impressão (estoque, validade, dispensas, transferências, consumo mensal/anual, inventário por lote)
+- **Alertas** — central operacional (estoque baixo/crítico, validade, pendências de solicitações/transferências), barra de avisos
 - **Chat interno** — widget flutuante, contatos, grupos, online/offline, auditoria de chat
 - **PEC/e-SUS** — busca de cidadão por CPF (PostgreSQL)
 - **Hórus / SUS** — exportação CSV legada (integração manual; Hórus em descontinuação pelo SUS)
@@ -221,6 +222,9 @@ Reservas vencidas são expiradas automaticamente às **01:00**.
 | Entre unidades | `/transferencias/entre-unidades` |
 | Solicitações | `/solicitacoes` |
 | Pacientes | `/pacientes` |
+| Alertas (central) | `/alertas` |
+| Alertas estoque | `/alertas/estoque` |
+| Alertas pendências | `/alertas/pendencias` |
 | Alertas validade | `/alertas/vencimento` |
 | Relatórios | `/relatorios` |
 | Fornecedores | `/fornecedores` |

@@ -58,6 +58,12 @@ class RelatorioController extends Controller
                 ]))
                 : $this->exportarConsumoAnual($request, $clinicaId),
             'movimentacoes' => $this->exportarMovimentacoes($clinicaId),
+            'inventario' => $formato === 'pdf'
+                ? redirect()->route('relatorios.imprimir', array_filter([
+                    'tipo' => 'inventario',
+                    'clinica_id' => $clinicaId ?: null,
+                ]))
+                : $this->exportarInventario($clinicaId),
             default => redirect()->route('relatorios.index')->withErrors(['error' => 'Relatório inválido.']),
         };
     }
@@ -95,6 +101,14 @@ class RelatorioController extends Controller
                 : "Consumo anual {$anoInicio}–{$anoFim}";
 
             return view('relatorios.print.consumo-anual', compact('resumo', 'detalhe', 'titulo', 'anoInicio', 'anoFim'));
+        }
+
+        if ($tipo === 'inventario') {
+            LoteService::inicializar();
+            $dados = RelatorioService::inventarioLotes($clinicaId ?: null);
+            $titulo = 'Planilha de inventário (lotes)';
+
+            return view('relatorios.print.inventario', compact('dados', 'titulo'));
         }
 
         abort(404);
@@ -264,6 +278,29 @@ class RelatorioController extends Controller
         return RelatorioService::exportarCsv(
             'movimentacoes_' . date('Y-m-d') . '.csv',
             ['Data', 'Tipo', 'Unidade', 'Medicamento', 'Lote', 'Quantidade', 'Saldo lote após'],
+            $rows
+        );
+    }
+
+    private function exportarInventario(int $clinicaId)
+    {
+        LoteService::inicializar();
+
+        $rows = RelatorioService::inventarioLotes($clinicaId ?: null)->map(fn ($r) => [
+            $r->unidade,
+            $r->codigo,
+            $r->medicamento,
+            $r->dosagem ?: '',
+            $r->lote ?: '',
+            $r->fabricante ?: '',
+            $r->validade_fmt ?: '',
+            $r->quantidade,
+            '',
+        ])->all();
+
+        return RelatorioService::exportarCsv(
+            'inventario_lotes_' . date('Y-m-d') . '.csv',
+            ['Unidade', 'Código', 'Medicamento', 'Dosagem', 'Lote', 'Fabricante', 'Validade', 'Qtd sistema', 'Qtd contada'],
             $rows
         );
     }

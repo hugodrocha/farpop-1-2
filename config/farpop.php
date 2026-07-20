@@ -69,7 +69,7 @@ return [
         'cadastros' => [
             'label' => 'Cadastros',
             'icone' => 'fa-database',
-            'status' => 'parcial',
+            'status' => 'ativo',
             'perfis' => ['superuser', 'admin', 'gestor'],
             'submodulos' => [
                 'usuarios' => ['label' => 'Usuários', 'status' => 'ativo', 'perfis' => ['superuser', 'admin', 'gestor', 'farmaceutico']],
@@ -83,7 +83,7 @@ return [
         'estoque' => [
             'label' => 'Controle de estoque',
             'icone' => 'fa-boxes',
-            'status' => 'parcial',
+            'status' => 'ativo',
             'perfis' => ['superuser', 'admin', 'gestor', 'farmaceutico', 'tecnico'],
             'submodulos' => [
                 'consulta' => ['label' => 'Consultar estoque', 'status' => 'ativo'],
@@ -102,7 +102,7 @@ return [
         'transferencias' => [
             'label' => 'Transferências',
             'icone' => 'fa-truck',
-            'status' => 'parcial',
+            'status' => 'ativo',
             'perfis' => ['superuser', 'admin', 'gestor', 'farmaceutico', 'tecnico'],
             'submodulos' => [
                 'envio' => ['label' => 'Envio (matriz → unidade)', 'status' => 'ativo'],
@@ -116,7 +116,7 @@ return [
         'alertas' => [
             'label' => 'Alertas',
             'icone' => 'fa-bell',
-            'status' => 'parcial',
+            'status' => 'ativo',
             'perfis' => ['superuser', 'admin', 'gestor', 'farmaceutico', 'tecnico'],
             'submodulos' => [
                 'estoque_baixo' => ['label' => 'Estoque baixo/crítico', 'status' => 'ativo'],
@@ -248,6 +248,16 @@ return [
             'itens' => [
                 'Relatório de consumo anual (CSV e impressão)',
                 'Etiquetas de lote com CODE128 real',
+            ],
+            'status' => 'concluido',
+        ],
+        'fase_7' => [
+            'titulo' => 'Governança operacional',
+            'itens' => [
+                'Central de alertas (estoque, validade, pendências)',
+                'Relatório de inventário por lote (CSV e impressão)',
+                'Fabricantes sugeridos nas entradas',
+                'Módulos cadastros, estoque, transferências e alertas ativos',
             ],
             'status' => 'concluido',
         ],
