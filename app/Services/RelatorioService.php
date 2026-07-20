@@ -166,6 +166,125 @@ class RelatorioService
         return $q->get();
     }
 
+    /**
+     * Consumo anual por unidade e medicamento (dispensas).
+     */
+    public static function consumoAnual(?int $clinicaId = null, ?int $anoInicio = null, ?int $anoFim = null): Collection
+    {
+        $anoFim = $anoFim ?? (int) today()->year;
+        $anoInicio = $anoInicio ?? ($anoFim - 4);
+
+        if ($anoInicio > $anoFim) {
+            [$anoInicio, $anoFim] = [$anoFim, $anoInicio];
+        }
+
+        $q = DB::table('saidas_medicamentos as s')
+            ->join('clinicas as c', 'c.id', '=', 's.clinica_id')
+            ->join('medicamentos as m', 'm.id', '=', 's.medicamento_id')
+            ->whereYear('s.data_saida', '>=', $anoInicio)
+            ->whereYear('s.data_saida', '<=', $anoFim)
+            ->select(
+                DB::raw('YEAR(s.data_saida) as ano'),
+                'c.nome as unidade',
+                'm.codigo',
+                'm.nome as medicamento',
+                'm.dosagem',
+                DB::raw('SUM(s.quantidade) as total'),
+                DB::raw('COUNT(*) as qtd_registros')
+            )
+            ->groupBy(
+                DB::raw('YEAR(s.data_saida)'),
+                'c.nome',
+                'm.codigo',
+                'm.nome',
+                'm.dosagem'
+            )
+            ->orderByDesc('ano')
+            ->orderBy('c.nome')
+            ->orderByDesc('total');
+
+        if ($clinicaId > 0) {
+            $q->where('s.clinica_id', $clinicaId);
+        }
+
+        return $q->get();
+    }
+
+    /**
+     * Totais anuais agregados por unidade (para impressão resumida).
+     */
+    public static function consumoAnualResumo(?int $clinicaId = null, ?int $anoInicio = null, ?int $anoFim = null): Collection
+    {
+        $anoFim = $anoFim ?? (int) today()->year;
+        $anoInicio = $anoInicio ?? ($anoFim - 4);
+
+        if ($anoInicio > $anoFim) {
+            [$anoInicio, $anoFim] = [$anoFim, $anoInicio];
+        }
+
+        $q = DB::table('saidas_medicamentos as s')
+            ->join('clinicas as c', 'c.id', '=', 's.clinica_id')
+            ->whereYear('s.data_saida', '>=', $anoInicio)
+            ->whereYear('s.data_saida', '<=', $anoFim)
+            ->select(
+                DB::raw('YEAR(s.data_saida) as ano'),
+                'c.nome as unidade',
+                DB::raw('SUM(s.quantidade) as total'),
+                DB::raw('COUNT(DISTINCT s.medicamento_id) as medicamentos_distintos'),
+                DB::raw('COUNT(DISTINCT s.paciente_id) as pacientes_atendidos')
+            )
+            ->groupBy(DB::raw('YEAR(s.data_saida)'), 'c.nome')
+            ->orderByDesc('ano')
+            ->orderBy('c.nome');
+
+        if ($clinicaId > 0) {
+            $q->where('s.clinica_id', $clinicaId);
+        }
+
+        return $q->get();
+    }
+
+    public static function anosConsumo(?int $clinicaId = null): array
+    {
+        $q = DB::table('saidas_medicamentos')->selectRaw('DISTINCT YEAR(data_saida) as ano')->orderByDesc('ano');
+        if ($clinicaId > 0) {
+            $q->where('clinica_id', $clinicaId);
+        }
+
+        return $q->pluck('ano')->map(fn ($a) => (int) $a)->filter(fn ($a) => $a > 0)->values()->all();
+    }
+
+    public static function intervaloAnualRequest(Request $request): array
+    {
+        $de = $request->query('de');
+        $ate = $request->query('ate');
+        $ano = (int) $request->query('ano', 0);
+
+        if ($ano > 0) {
+            return [$ano, $ano];
+        }
+
+        if ($de && $ate) {
+            return [(int) date('Y', strtotime($de)), (int) date('Y', strtotime($ate))];
+        }
+
+        if ($de) {
+            $y = (int) date('Y', strtotime($de));
+
+            return [$y, $y];
+        }
+
+        if ($ate) {
+            $y = (int) date('Y', strtotime($ate));
+
+            return [$y - 4, $y];
+        }
+
+        $y = (int) today()->year;
+
+        return [$y - 4, $y];
+    }
+
     public static function escopoClinica(Request $request): int
     {
         $perfil = (string) $request->session()->get('perfil', '');

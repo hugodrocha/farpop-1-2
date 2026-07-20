@@ -93,4 +93,22 @@ class CodigoBarrasService
         $svg .= '</svg>';
         return $svg;
     }
+
+    /**
+     * Valor a codificar na etiqueta de lote (prioriza EAN/código de barras do medicamento).
+     */
+    public static function valorEtiquetaLote(object $lote): string
+    {
+        $cb = trim((string) ($lote->codigo_barras ?? ''));
+        if ($cb !== '') {
+            return $cb;
+        }
+
+        $codigo = trim((string) ($lote->codigo ?? ''));
+        if ($codigo !== '') {
+            return $codigo;
+        }
+
+        return 'LOTE' . (int) ($lote->id ?? 0);
+    }
 }

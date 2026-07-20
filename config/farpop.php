@@ -163,7 +163,7 @@ return [
             'submodulos' => [
                 'pec' => ['label' => 'PEC / e-SUS (busca cidadão)', 'status' => 'ativo'],
                 'horus' => ['label' => 'Hórus / SUS', 'status' => 'ativo'],
-                'codigo_barras' => ['label' => 'Leitura de código de barras', 'status' => 'parcial'],
+                'codigo_barras' => ['label' => 'Leitura de código de barras', 'status' => 'ativo'],
             ],
         ],
     ],
@@ -240,6 +240,14 @@ return [
                 'Devolução de medicamentos unidade → matriz',
                 'Tipo de movimentação e cancelamento por unidade de origem',
                 'Histórico com identificação do tipo de transferência',
+            ],
+            'status' => 'concluido',
+        ],
+        'fase_6' => [
+            'titulo' => 'Relatórios e etiquetas',
+            'itens' => [
+                'Relatório de consumo anual (CSV e impressão)',
+                'Etiquetas de lote com CODE128 real',
             ],
             'status' => 'concluido',
         ],

@@ -118,7 +118,7 @@ class ModuloService
             ['slug' => 'movimentacoes', 'label' => 'Histórico de movimentações', 'status' => 'ativo'],
             ['slug' => 'inventario', 'label' => 'Inventário', 'status' => 'planejado'],
             ['slug' => 'consumo_mensal', 'label' => 'Consumo mensal', 'status' => 'ativo'],
-            ['slug' => 'consumo_anual', 'label' => 'Consumo anual', 'status' => 'planejado'],
+            ['slug' => 'consumo_anual', 'label' => 'Consumo anual', 'status' => 'ativo'],
         ];
     }
 }

@@ -33,6 +33,10 @@
                     <label class="form-label mb-1">Até (opcional)</label>
                     <input type="date" name="ate" class="form-control form-control-sm" id="filtroAte">
                 </div>
+                <div class="col-md-2">
+                    <label class="form-label mb-1">Ano (consumo anual)</label>
+                    <input type="number" name="ano" class="form-control form-control-sm" id="filtroAno" min="2000" max="2100" placeholder="{{ date('Y') }}">
+                </div>
             </form>
         </div>
     </div>
@@ -56,7 +60,7 @@
                         <div class="mt-auto d-flex flex-wrap gap-2">
                             @if(in_array($rel['status'], ['ativo', 'parcial'], true))
                                 <a href="#" class="btn btn-sm btn-outline-success btn-export" data-tipo="{{ $rel['slug'] }}" data-formato="csv"><i class="fas fa-file-csv me-1"></i> Excel</a>
-                                @if(in_array($rel['slug'], ['estoque_geral', 'estoque_unidade', 'vencendo', 'vencidos'], true))
+                                @if(in_array($rel['slug'], ['estoque_geral', 'estoque_unidade', 'vencendo', 'vencidos', 'consumo_anual'], true))
                                     <a href="#" class="btn btn-sm btn-outline-secondary btn-export" data-tipo="{{ $rel['slug'] }}" data-formato="pdf"><i class="fas fa-print me-1"></i> PDF</a>
                                 @endif
                             @else
@@ -82,9 +86,11 @@
         const cid = document.getElementById('filtroClinica');
         const de = document.getElementById('filtroDe');
         const ate = document.getElementById('filtroAte');
+        const ano = document.getElementById('filtroAno');
         if (cid && cid.value) params.set('clinica_id', cid.value);
         if (de && de.value) params.set('de', de.value);
         if (ate && ate.value) params.set('ate', ate.value);
+        if (ano && ano.value) params.set('ano', ano.value);
         return params;
     }
 

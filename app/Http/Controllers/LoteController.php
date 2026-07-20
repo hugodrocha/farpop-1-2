@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CodigoBarrasService;
 use App\Services\LoteService;
 use App\Services\ModuloService;
 use App\Services\PerfilService;
@@ -38,11 +39,13 @@ class LoteController extends Controller
             ->join('medicamentos as m', 'm.id', '=', 'l.medicamento_id')
             ->join('clinicas as c', 'c.id', '=', 'l.clinica_id')
             ->where('l.id', $id)
-            ->select('l.*', 'm.nome as medicamento', 'm.codigo', 'c.nome as clinica')
+            ->select('l.*', 'm.nome as medicamento', 'm.codigo', 'm.codigo_barras', 'c.nome as clinica')
             ->firstOrFail();
 
         $lote->validade_fmt = \App\Services\ValidadeService::formatar($lote->validade);
+        $barcodeValor = CodigoBarrasService::valorEtiquetaLote($lote);
+        $barcodeSvg = CodigoBarrasService::code128Svg($barcodeValor, 2, 56, true);
 
-        return view('lotes.etiqueta', compact('lote'));
+        return view('lotes.etiqueta', compact('lote', 'barcodeSvg', 'barcodeValor'));
     }
 }

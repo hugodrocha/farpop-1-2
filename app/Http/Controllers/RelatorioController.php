@@ -48,6 +48,15 @@ class RelatorioController extends Controller
             'dispensa_medicamento' => $this->exportarDispensaMedicamento($clinicaId, $de, $ate),
             'transferencias' => $this->exportarTransferencias($clinicaId, $de, $ate),
             'consumo_mensal' => $this->exportarConsumoMensal($clinicaId),
+            'consumo_anual' => $formato === 'pdf'
+                ? redirect()->route('relatorios.imprimir', array_filter([
+                    'tipo' => 'consumo_anual',
+                    'clinica_id' => $clinicaId ?: null,
+                    'de' => $de,
+                    'ate' => $ate,
+                    'ano' => $request->query('ano'),
+                ]))
+                : $this->exportarConsumoAnual($request, $clinicaId),
             'movimentacoes' => $this->exportarMovimentacoes($clinicaId),
             default => redirect()->route('relatorios.index')->withErrors(['error' => 'Relatório inválido.']),
         };
@@ -75,6 +84,17 @@ class RelatorioController extends Controller
             $titulo = $tipo === 'vencidos' ? 'Medicamentos vencidos' : 'Medicamentos vencendo';
 
             return view('relatorios.print.vencimento', compact('dados', 'titulo'));
+        }
+
+        if ($tipo === 'consumo_anual') {
+            [$anoInicio, $anoFim] = RelatorioService::intervaloAnualRequest($request);
+            $resumo = RelatorioService::consumoAnualResumo($clinicaId ?: null, $anoInicio, $anoFim);
+            $detalhe = RelatorioService::consumoAnual($clinicaId ?: null, $anoInicio, $anoFim);
+            $titulo = $anoInicio === $anoFim
+                ? "Consumo anual {$anoInicio}"
+                : "Consumo anual {$anoInicio}–{$anoFim}";
+
+            return view('relatorios.print.consumo-anual', compact('resumo', 'detalhe', 'titulo', 'anoInicio', 'anoFim'));
         }
 
         abort(404);
@@ -195,6 +215,29 @@ class RelatorioController extends Controller
         return RelatorioService::exportarCsv(
             'consumo_mensal_' . date('Y-m-d') . '.csv',
             ['Mês', 'Unidade', 'Total dispensado'],
+            $rows
+        );
+    }
+
+    private function exportarConsumoAnual(Request $request, int $clinicaId)
+    {
+        [$anoInicio, $anoFim] = RelatorioService::intervaloAnualRequest($request);
+
+        $rows = RelatorioService::consumoAnual($clinicaId ?: null, $anoInicio, $anoFim)->map(fn ($r) => [
+            $r->ano,
+            $r->unidade,
+            $r->codigo,
+            $r->medicamento,
+            $r->dosagem ?: '',
+            $r->total,
+            $r->qtd_registros,
+        ])->all();
+
+        $suffix = $anoInicio === $anoFim ? (string) $anoInicio : "{$anoInicio}-{$anoFim}";
+
+        return RelatorioService::exportarCsv(
+            'consumo_anual_' . $suffix . '.csv',
+            ['Ano', 'Unidade', 'Código', 'Medicamento', 'Dosagem', 'Total dispensado', 'Registros'],
             $rows
         );
     }

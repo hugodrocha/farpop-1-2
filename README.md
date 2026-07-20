@@ -27,8 +27,7 @@ O FARPOP cobre cadastros, controle de estoque por lote (PEPS/FIFO), dispensa ao 
 | **3** | Lotes PEPS/FIFO, inventário, ajustes, movimentações, etiquetas | Concluída |
 | **4** | Solicitação → aprovação → separação → envio, fornecedores/fabricantes, reservas, Hórus, backup | Concluída |
 | **5** | Transferência entre unidades, devolução unidade → matriz, tipos de movimentação | Concluída |
-
-**Próximo previsto:** integração Hórus via API, relatório consumo anual, código de barras Code128 real.
+| **6** | Consumo anual (CSV/impressão), etiquetas CODE128 | Concluída |
 
 Detalhes dos módulos e perfis: `config/farpop.php`.
 
@@ -43,7 +42,7 @@ Detalhes dos módulos e perfis: `config/farpop.php`.
 - **Entradas** — compra, doação ou devolução; lote/validade/fabricante; vínculo com fornecedor cadastrado
 - **Dispensa (saídas)** — múltiplos itens, bloqueio de duplicidade no dia, comprovante, baixa PEPS
 - **Reservas** — medicamento reservado por paciente; consumo automático na dispensa
-- **Lotes (PEPS/FIFO)** — saldo por lote, etiqueta, histórico de movimentações
+- **Lotes (PEPS/FIFO)** — saldo por lote, etiqueta CODE128, histórico de movimentações
 - **Inventário e ajustes** — contagem física e ajustes tipados (perda, vencimento etc.)
 - **Aqui Tem** — busca de disponibilidade por unidade
 
@@ -66,11 +65,11 @@ Detalhes dos módulos e perfis: `config/farpop.php`.
 
 ### Gestão e integrações
 
-- **Relatórios** — hub com exportação CSV e impressão (estoque, validade, dispensas, transferências, consumo)
+- **Relatórios** — hub com exportação CSV e impressão (estoque, validade, dispensas, transferências, consumo mensal/anual)
 - **Alertas** — estoque baixo/crítico, vencimento, barra de avisos
 - **Chat interno** — widget flutuante, contatos, grupos, online/offline, auditoria de chat
 - **PEC/e-SUS** — busca de cidadão por CPF (PostgreSQL)
-- **Hórus / SUS** — exportação CSV de movimentações para integração manual (BNAFAR)
+- **Hórus / SUS** — exportação CSV legada (integração manual; Hórus em descontinuação pelo SUS)
 - **Auditoria** — log de ações + ações críticas
 - **Configurações** — alertas, chat, teste PEC, backup manual
 - **Backup automático** — comando Artisan + agendamento diário
