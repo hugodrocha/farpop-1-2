@@ -136,6 +136,7 @@ class DashboardService
             'criticos' => (int) ($criticos->t ?? 0),
             'amarelos' => (int) ($amarelos->t ?? 0),
             'transf_pendentes' => DB::table('transferencias')->where('status', 'pendente')->count(),
+            'solicitacoes_pendentes' => SolicitacaoTransferenciaService::contarPendentes(),
             'pct_vermelho' => $pctVermelho,
             'pct_amarelo' => $pctAmarelo,
         ];
@@ -154,6 +155,7 @@ class DashboardService
             'criticos' => self::contarAlertasClinica($clinicaId, $pctVermelho, null, 'critico'),
             'amarelos' => self::contarAlertasClinica($clinicaId, $pctAmarelo, $pctVermelho, 'amarelo'),
             'transf_pendentes' => DB::table('transferencias')->where('clinica_destino_id', $clinicaId)->where('status', 'pendente')->count(),
+            'solicitacoes_pendentes' => SolicitacaoTransferenciaService::contarPendentes($clinicaId),
         ];
     }
 

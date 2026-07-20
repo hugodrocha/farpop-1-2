@@ -43,6 +43,13 @@
                                    min="1" max="500" required>
                             <div class="form-text">Itens com quantidade ≤ este percentual do mínimo são críticos.</div>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">Alerta de vencimento (dias de antecedência)</label>
+                            <input type="number" name="alerta_vencimento_dias" class="form-control"
+                                   value="{{ old('alerta_vencimento_dias', $configs->get('alerta_vencimento_dias')?->valor ?? 90) }}"
+                                   min="7" max="365" required>
+                            <div class="form-text">Medicamentos com validade dentro deste prazo aparecem como “vencendo”.</div>
+                        </div>
                         <div class="mb-4">
                             <label class="form-label">Chat interno</label>
                             @php $chatVal = old('chat_habilitado', $configs->get('chat_habilitado')?->valor ?? '1'); @endphp
@@ -80,6 +87,17 @@
                             <div class="form-text">Informe um CPF para testar a busca de cidadão no PEC.</div>
                         </div>
                         <button type="submit" class="btn btn-outline-primary"><i class="fas fa-vial me-1"></i> Testar conexão PEC</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header bg-primary"><i class="fas fa-database me-2"></i>Backup do banco</div>
+                <div class="card-body">
+                    <p class="small text-muted">Backup automático diário às 02:00 (<code>php artisan schedule:run</code> no cron). Arquivos em <code>storage/app/backups/farpop</code>.</p>
+                    <form method="POST" action="{{ route('configuracoes.backup') }}">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-primary" onclick="return confirm('Gerar backup SQL agora?')"><i class="fas fa-download me-1"></i> Gerar backup manual</button>
                     </form>
                 </div>
             </div>

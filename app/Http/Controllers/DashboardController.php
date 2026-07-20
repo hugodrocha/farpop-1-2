@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AlertaVencimentoService;
 use App\Services\DashboardService;
 use App\Services\EstoqueService;
 use App\Services\GraficoService;
@@ -24,12 +25,14 @@ class DashboardController extends Controller
                 ['titulo' => 'Dispensações hoje por unidade', 'largura' => 420, 'altura' => 280]
             );
             $ultimasSaidas = DashboardService::ultimasSaidas(null, 8);
+            $alertasVencimento = AlertaVencimentoService::contar(null);
         } else {
             $totais = DashboardService::dadosUnidade($clinicaId);
             $totais['clinica_nome'] = session('clinica_nome');
             $cardsClinicas = collect();
             $graficoSaidas = '';
             $ultimasSaidas = DashboardService::ultimasSaidas($clinicaId, 8);
+            $alertasVencimento = AlertaVencimentoService::contar($clinicaId);
         }
 
         return view('dashboard.index', compact(
@@ -38,7 +41,8 @@ class DashboardController extends Controller
             'cardsClinicas',
             'graficoSaidas',
             'ultimasSaidas',
-            'perfil'
+            'perfil',
+            'alertasVencimento'
         ));
     }
 

@@ -75,7 +75,7 @@ class TransferenciaService
             ]);
 
             foreach ($itensValidos as $it) {
-                DB::table('transferencia_itens')->insert([
+                $itemId = DB::table('transferencia_itens')->insertGetId([
                     'transferencia_id' => $transferenciaId,
                     'medicamento_id' => $it['medicamento_id'],
                     'quantidade_enviada' => $it['quantidade'],
@@ -84,9 +84,18 @@ class TransferenciaService
                     'validade' => $it['validade'],
                 ]);
 
-                if (!EstoqueService::subtrair($centralId, $it['medicamento_id'], $it['quantidade'])) {
-                    throw new RuntimeException('Falha ao debitar estoque da Central.');
-                }
+                LoteService::inicializar();
+                LoteService::baixarPepe(
+                    $centralId,
+                    $it['medicamento_id'],
+                    $it['quantidade'],
+                    'transferencia_matriz_unidade',
+                    'transferencia_item',
+                    $itemId,
+                    $usuarioId,
+                    $it['lote'],
+                    $it['validade']
+                );
             }
 
             AuditoriaService::registrar(
@@ -141,7 +150,22 @@ class TransferenciaService
                 ]);
 
                 if ($qtdRec > 0) {
-                    EstoqueService::somarOuCriar($destinoId, (int) $it->medicamento_id, $qtdRec);
+                    LoteService::inicializar();
+                    LoteService::adicionarLote(
+                        $destinoId,
+                        (int) $it->medicamento_id,
+                        $qtdRec,
+                        'transferencia_matriz_unidade',
+                        $it->lote,
+                        $it->validade,
+                        null,
+                        null,
+                        null,
+                        'transferencia',
+                        $transferenciaId,
+                        $usuarioId,
+                        'Recebido via transferência ' . ($t->codigo_nota ?? '')
+                    );
 
                     DB::table('entradas_medicamentos')->insert([
                         'clinica_id' => $destinoId,
@@ -157,7 +181,22 @@ class TransferenciaService
                 }
 
                 if ($devolver > 0) {
-                    EstoqueService::somarOuCriar($origemId, (int) $it->medicamento_id, $devolver);
+                    LoteService::inicializar();
+                    LoteService::adicionarLote(
+                        $origemId,
+                        (int) $it->medicamento_id,
+                        $devolver,
+                        'devolucao',
+                        $it->lote,
+                        $it->validade,
+                        null,
+                        null,
+                        null,
+                        'transferencia_devolucao',
+                        $transferenciaId,
+                        $usuarioId,
+                        'Devolução parcial transferência'
+                    );
                 }
             }
 
@@ -203,7 +242,22 @@ class TransferenciaService
 
             $itens = DB::table('transferencia_itens')->where('transferencia_id', $transferenciaId)->get();
             foreach ($itens as $it) {
-                EstoqueService::somarOuCriar($centralId ?? (int) $t->clinica_origem_id, (int) $it->medicamento_id, (int) $it->quantidade_enviada);
+                LoteService::inicializar();
+                LoteService::adicionarLote(
+                    $centralId ?? (int) $t->clinica_origem_id,
+                    (int) $it->medicamento_id,
+                    (int) $it->quantidade_enviada,
+                    'devolucao',
+                    $it->lote,
+                    $it->validade,
+                    null,
+                    null,
+                    null,
+                    'transferencia_cancelada',
+                    $transferenciaId,
+                    $usuarioId,
+                    'Cancelamento de transferência'
+                );
             }
 
             DB::table('transferencias')->where('id', $transferenciaId)->update([

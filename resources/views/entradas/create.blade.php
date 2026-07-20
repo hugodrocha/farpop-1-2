@@ -36,9 +36,28 @@
                         <input type="text" name="nota_fiscal" class="form-control" value="{{ old('nota_fiscal') }}">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Origem</label>
+                        <label class="form-label">Tipo de entrada</label>
+                        <select name="tipo_entrada" class="form-select">
+                            <option value="entrada_compra">Entrada por compra</option>
+                            <option value="entrada_doacao">Entrada por doação</option>
+                            <option value="devolucao">Devolução</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Origem / fornecedor (texto)</label>
                         <input type="text" name="origem" class="form-control" value="{{ old('origem') }}" placeholder="Ex.: SUS, doação">
                     </div>
+                    @if(!empty($fornecedores) && count($fornecedores))
+                    <div class="col-md-3">
+                        <label class="form-label">Fornecedor cadastrado</label>
+                        <select name="fornecedor_id" class="form-select">
+                            <option value="">—</option>
+                            @foreach($fornecedores as $f)
+                                <option value="{{ $f->id }}" {{ old('fornecedor_id') == $f->id ? 'selected' : '' }}>{{ $f->nome }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
                     <div class="col-12">
                         <label class="form-label">Observação geral</label>
                         <input type="text" name="observacao" class="form-control" value="{{ old('observacao') }}">
@@ -71,6 +90,7 @@
                                 <th>Medicamento</th>
                                 <th style="width:110px">Quantidade</th>
                                 <th style="width:110px">Lote</th>
+                                <th style="width:120px">Fabricante</th>
                                 <th style="width:110px">Validade</th>
                                 <th>Obs.</th>
                                 <th style="width:50px"></th>
@@ -133,6 +153,7 @@
                     <input type="number" name="med_qtd[]" class="form-control form-control-sm" min="1" value="${item.qtd}" required data-idx="${idx}">
                 </td>
                 <td><input type="text" name="med_lote[]" class="form-control form-control-sm" value="${esc(item.lote || '')}" data-idx="${idx}"></td>
+                <td><input type="text" name="med_fabricante[]" class="form-control form-control-sm" value="${esc(item.fabricante || '')}" data-idx="${idx}"></td>
                 <td><input type="text" name="med_validade[]" class="form-control form-control-sm" value="${esc(item.validade || '')}" placeholder="MM/AAAA" data-idx="${idx}"></td>
                 <td><input type="text" name="med_obs[]" class="form-control form-control-sm" value="${esc(item.obs || '')}" data-idx="${idx}"></td>
                 <td><button type="button" class="btn btn-sm btn-outline-danger btn-remover" data-idx="${idx}"><i class="fas fa-trash"></i></button></td>`;
@@ -177,6 +198,7 @@
             codigo: med.codigo,
             qtd: 1,
             lote: '',
+            fabricante: '',
             validade: '',
             obs: ''
         };

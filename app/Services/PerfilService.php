@@ -6,6 +6,11 @@ class PerfilService
 {
     public static function nome(string $perfil): string
     {
+        $cfg = config("farpop.perfis.{$perfil}.label");
+        if ($cfg) {
+            return (string) $cfg;
+        }
+
         return match ($perfil) {
             'superuser' => 'Super Usuário',
             'admin' => 'Administrador',

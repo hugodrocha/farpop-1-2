@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * FARPOP — configuração modular do sistema de gestão farmacêutica municipal.
+ *
+ * Cada módulo declara perfis autorizados e status de implementação:
+ * - ativo: funcionalidade disponível
+ * - parcial: parcialmente implementado
+ * - planejado: previsto no roadmap
+ */
 return [
     'brasao_url' => 'https://prefeitura.mesquita.rj.gov.br/wp-content/uploads/2025/11/Brasao-Cidade-de-Mesquita-Colorido-1.png',
 
@@ -12,5 +20,218 @@ return [
         'password' => env('PEC_PASSWORD', ''),
         'schema' => env('PEC_SCHEMA', 'public'),
         'timeout' => env('PEC_TIMEOUT', 3),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Perfis de acesso (alinhados à gestão farmacêutica municipal)
+    |--------------------------------------------------------------------------
+    */
+    'perfis' => [
+        'superuser' => [
+            'label' => 'Super Usuário',
+            'descricao' => 'Acesso total ao sistema, auditoria crítica e configurações.',
+        ],
+        'admin' => [
+            'label' => 'Administrador',
+            'descricao' => 'Gerencia usuários, unidades, estoque e configurações.',
+        ],
+        'gestor' => [
+            'label' => 'Gestor',
+            'descricao' => 'Cadastros, usuários limitados e operações de estoque.',
+        ],
+        'farmaceutico' => [
+            'label' => 'Farmacêutico',
+            'descricao' => 'Dispensas, transferências, controle de estoque e usuários da unidade.',
+        ],
+        'tecnico' => [
+            'label' => 'Auxiliar de Farmácia',
+            'descricao' => 'Registra entradas, saídas e auxilia dispensas, sem configurações administrativas.',
+        ],
+        'consulta' => [
+            'label' => 'Consulta',
+            'descricao' => 'Consulta de disponibilidade (Aqui Tem) e chat, se habilitado.',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Módulos do sistema
+    |--------------------------------------------------------------------------
+    */
+    'modulos' => [
+        'dashboard' => [
+            'label' => 'Dashboard',
+            'icone' => 'fa-home',
+            'status' => 'ativo',
+            'perfis' => ['superuser', 'admin', 'gestor', 'farmaceutico', 'tecnico'],
+        ],
+        'cadastros' => [
+            'label' => 'Cadastros',
+            'icone' => 'fa-database',
+            'status' => 'parcial',
+            'perfis' => ['superuser', 'admin', 'gestor'],
+            'submodulos' => [
+                'usuarios' => ['label' => 'Usuários', 'status' => 'ativo', 'perfis' => ['superuser', 'admin', 'gestor', 'farmaceutico']],
+                'unidades' => ['label' => 'Unidades de saúde', 'status' => 'ativo', 'perfis' => ['superuser', 'admin', 'gestor']],
+                'pacientes' => ['label' => 'Pacientes', 'status' => 'ativo', 'perfis' => ['superuser', 'admin', 'gestor', 'farmaceutico', 'tecnico']],
+                'medicamentos' => ['label' => 'Medicamentos', 'status' => 'ativo', 'perfis' => ['superuser', 'admin', 'gestor']],
+                'fornecedores' => ['label' => 'Fornecedores', 'status' => 'ativo', 'perfis' => ['superuser', 'admin', 'gestor']],
+                'fabricantes' => ['label' => 'Fabricantes', 'status' => 'ativo', 'perfis' => ['superuser', 'admin', 'gestor']],
+            ],
+        ],
+        'estoque' => [
+            'label' => 'Controle de estoque',
+            'icone' => 'fa-boxes',
+            'status' => 'parcial',
+            'perfis' => ['superuser', 'admin', 'gestor', 'farmaceutico', 'tecnico'],
+            'submodulos' => [
+                'consulta' => ['label' => 'Consultar estoque', 'status' => 'ativo'],
+                'entradas' => ['label' => 'Entradas', 'status' => 'ativo'],
+                'lotes' => ['label' => 'Controle por lote (PEPS/FIFO)', 'status' => 'ativo'],
+                'ajustes' => ['label' => 'Ajustes e perdas', 'status' => 'ativo'],
+                'inventario' => ['label' => 'Inventário', 'status' => 'ativo'],
+            ],
+        ],
+        'dispensa' => [
+            'label' => 'Dispensa de medicamentos',
+            'icone' => 'fa-pills',
+            'status' => 'ativo',
+            'perfis' => ['superuser', 'admin', 'gestor', 'farmaceutico', 'tecnico'],
+        ],
+        'transferencias' => [
+            'label' => 'Transferências',
+            'icone' => 'fa-truck',
+            'status' => 'parcial',
+            'perfis' => ['superuser', 'admin', 'gestor', 'farmaceutico', 'tecnico'],
+            'submodulos' => [
+                'envio' => ['label' => 'Envio (matriz → unidade)', 'status' => 'ativo'],
+                'recebimento' => ['label' => 'Recebimento', 'status' => 'ativo'],
+                'transito' => ['label' => 'Em transporte', 'status' => 'ativo'],
+                'guia' => ['label' => 'Guia de transferência', 'status' => 'ativo'],
+                'solicitacao' => ['label' => 'Solicitação e aprovação', 'status' => 'ativo'],
+                'entre_unidades' => ['label' => 'Transferência entre unidades', 'status' => 'planejado'],
+            ],
+        ],
+        'alertas' => [
+            'label' => 'Alertas',
+            'icone' => 'fa-bell',
+            'status' => 'parcial',
+            'perfis' => ['superuser', 'admin', 'gestor', 'farmaceutico', 'tecnico'],
+            'submodulos' => [
+                'estoque_baixo' => ['label' => 'Estoque baixo/crítico', 'status' => 'ativo'],
+                'avisos_barra' => ['label' => 'Barra de avisos', 'status' => 'ativo'],
+                'vencimento' => ['label' => 'Medicamentos vencendo/vencidos', 'status' => 'ativo'],
+                'pendencias' => ['label' => 'Solicitações e transferências pendentes', 'status' => 'ativo'],
+            ],
+        ],
+        'relatorios' => [
+            'label' => 'Relatórios',
+            'icone' => 'fa-chart-bar',
+            'status' => 'ativo',
+            'perfis' => ['superuser', 'admin', 'gestor', 'farmaceutico'],
+        ],
+        'auditoria' => [
+            'label' => 'Auditoria e segurança',
+            'icone' => 'fa-shield-alt',
+            'status' => 'ativo',
+            'perfis' => ['superuser', 'admin'],
+        ],
+        'configuracoes' => [
+            'label' => 'Configurações',
+            'icone' => 'fa-cog',
+            'status' => 'ativo',
+            'perfis' => ['superuser', 'admin'],
+        ],
+        'aqui_tem' => [
+            'label' => 'Aqui Tem',
+            'icone' => 'fa-map-marker-alt',
+            'status' => 'ativo',
+            'perfis' => ['consulta', 'superuser', 'admin', 'farmaceutico', 'tecnico'],
+        ],
+        'chat' => [
+            'label' => 'Chat interno',
+            'icone' => 'fa-comments',
+            'status' => 'ativo',
+            'perfis' => ['superuser', 'admin', 'gestor', 'farmaceutico', 'tecnico', 'consulta'],
+        ],
+        'integracoes' => [
+            'label' => 'Integrações',
+            'icone' => 'fa-plug',
+            'status' => 'parcial',
+            'perfis' => ['superuser', 'admin'],
+            'submodulos' => [
+                'pec' => ['label' => 'PEC / e-SUS (busca cidadão)', 'status' => 'ativo'],
+                'horus' => ['label' => 'Hórus / SUS', 'status' => 'ativo'],
+                'codigo_barras' => ['label' => 'Leitura de código de barras', 'status' => 'parcial'],
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tipos de movimentação de estoque (histórico unificado — roadmap)
+    |--------------------------------------------------------------------------
+    */
+    'movimentacoes' => [
+        'entrada_compra' => 'Entrada por compra',
+        'entrada_doacao' => 'Entrada por doação',
+        'transferencia_matriz_unidade' => 'Transferência Matriz → Unidade',
+        'transferencia_unidade_matriz' => 'Transferência Unidade → Matriz',
+        'transferencia_entre_unidades' => 'Transferência entre unidades',
+        'dispensa_paciente' => 'Dispensa ao paciente',
+        'ajuste_estoque' => 'Ajuste de estoque',
+        'perda' => 'Perda',
+        'vencimento' => 'Vencimento',
+        'devolucao' => 'Devolução',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Roadmap de evolução (fases sugeridas)
+    |--------------------------------------------------------------------------
+    */
+    'roadmap' => [
+        'fase_1' => [
+            'titulo' => 'Fundação operacional',
+            'itens' => [
+                'Cadastros básicos (usuários, unidades, medicamentos)',
+                'Entradas, dispensas e estoque agregado',
+                'Transferência matriz → unidade com guia e recebimento',
+                'Dashboard, auditoria e chat',
+            ],
+            'status' => 'concluido',
+        ],
+        'fase_2' => [
+            'titulo' => 'Cadastros e visibilidade',
+            'itens' => [
+                'Cadastro de pacientes com histórico de dispensa',
+                'Hub de relatórios (PDF/Excel)',
+                'Alertas de vencimento',
+                'Campos CNES/CNPJ em unidades',
+            ],
+            'status' => 'concluido',
+        ],
+        'fase_3' => [
+            'titulo' => 'Controle por lote (PEPS/FIFO)',
+            'itens' => [
+                'Tabela de lotes com fabricante e validade',
+                'Baixa automática pelo lote mais antigo',
+                'Inventário e ajustes tipados',
+                'Etiquetas e código de barras avançado',
+            ],
+            'status' => 'concluido',
+        ],
+        'fase_4' => [
+            'titulo' => 'Workflow e integrações',
+            'itens' => [
+                'Solicitação → aprovação → separação → envio → recebimento',
+                'Fornecedores e fabricantes',
+                'Reserva de medicamentos por paciente',
+                'Integração Hórus / exportação SUS',
+                'Backup automático',
+            ],
+            'status' => 'concluido',
+        ],
     ],
 ];

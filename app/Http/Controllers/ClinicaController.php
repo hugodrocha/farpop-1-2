@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ClinicaSchemaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -12,6 +13,8 @@ class ClinicaController extends Controller
         if (!$request->session()->has('usuario_id')) {
             return redirect()->route('login');
         }
+
+        ClinicaSchemaService::garantir();
 
         $clinicas = DB::table('clinicas')->orderBy('nome')->get();
 
@@ -35,6 +38,8 @@ class ClinicaController extends Controller
 
         $data = $request->validate([
             'nome' => 'required|max:180',
+            'cnes' => 'nullable|max:20',
+            'cnpj' => 'nullable|max:20',
             'endereco' => 'nullable|max:255',
             'bairro' => 'nullable|max:120',
             'telefone' => 'nullable|max:40',
@@ -43,7 +48,9 @@ class ClinicaController extends Controller
             'ativo' => 'boolean',
         ]);
 
-        DB::table('clinicas')->insert([ 
+        ClinicaSchemaService::garantir();
+
+        DB::table('clinicas')->insert([
             ...$data,
             'criado_em' => now(),
             'atualizado_em' => now(),
@@ -71,6 +78,8 @@ class ClinicaController extends Controller
 
         $data = $request->validate([
             'nome' => 'required|max:180',
+            'cnes' => 'nullable|max:20',
+            'cnpj' => 'nullable|max:20',
             'endereco' => 'nullable|max:255',
             'bairro' => 'nullable|max:120',
             'telefone' => 'nullable|max:40',
@@ -78,6 +87,8 @@ class ClinicaController extends Controller
             'eh_central' => 'boolean',
             'ativo' => 'boolean',
         ]);
+
+        ClinicaSchemaService::garantir();
 
         DB::table('clinicas')->where('id', $id)->update([
             ...$data,

@@ -48,6 +48,27 @@
                 <div class="kpi-valor">{{ number_format($totais['transf_pendentes'], 0, ',', '.') }}</div>
                 <div class="kpi-hint">aguardando recebimento</div>
             </div>
+            <a href="{{ route('solicitacoes.index') }}" class="text-decoration-none">
+            <div class="farpop-kpi-card kpi-2" style="cursor:pointer">
+                <div class="kpi-label"><i class="fas fa-clipboard-list me-1"></i> Solicitações</div>
+                <div class="kpi-valor">{{ number_format($totais['solicitacoes_pendentes'] ?? 0, 0, ',', '.') }}</div>
+                <div class="kpi-hint">em workflow</div>
+            </div>
+            </a>
+            <a href="{{ route('alertas.vencimento') }}" class="text-decoration-none">
+            <div class="farpop-kpi-card kpi-5" style="cursor:pointer">
+                <div class="kpi-label"><i class="fas fa-calendar-times me-1"></i> Validade vencida</div>
+                <div class="kpi-valor">{{ number_format($alertasVencimento['vencidos'], 0, ',', '.') }}</div>
+                <div class="kpi-hint">lotes com estoque</div>
+            </div>
+            </a>
+            <a href="{{ route('alertas.vencimento', ['tipo' => 'vencendo']) }}" class="text-decoration-none">
+            <div class="farpop-kpi-card kpi-4" style="cursor:pointer">
+                <div class="kpi-label"><i class="fas fa-hourglass-half me-1"></i> Vencendo</div>
+                <div class="kpi-valor">{{ number_format($alertasVencimento['vencendo'], 0, ',', '.') }}</div>
+                <div class="kpi-hint">próx. {{ $alertasVencimento['dias'] }} dias</div>
+            </div>
+            </a>
             <div class="farpop-kpi-card kpi-2">
                 <div class="kpi-label"><i class="fas fa-exchange-alt me-1"></i> Movimentações hoje</div>
                 <div class="kpi-valor">{{ number_format($totais['entradas_hoje'], 0, ',', '.') }} / {{ number_format($totais['saidas_hoje'], 0, ',', '.') }}</div>
@@ -163,6 +184,25 @@
                 <div class="kpi-valor">{{ number_format($totais['transf_pendentes'], 0, ',', '.') }}</div>
                 <div class="kpi-hint">aguardando recebimento</div>
             </div>
+            <a href="{{ route('solicitacoes.index') }}" class="text-decoration-none">
+            <div class="farpop-kpi-card kpi-2" style="cursor:pointer">
+                <div class="kpi-label"><i class="fas fa-clipboard-list me-1"></i> Solicitações</div>
+                <div class="kpi-valor">{{ number_format($totais['solicitacoes_pendentes'] ?? 0, 0, ',', '.') }}</div>
+                <div class="kpi-hint">em workflow</div>
+            </div>
+            </a>
+            <a href="{{ route('alertas.vencimento') }}" class="text-decoration-none">
+            <div class="farpop-kpi-card kpi-5" style="cursor:pointer">
+                <div class="kpi-label"><i class="fas fa-calendar-times me-1"></i> Validade vencida</div>
+                <div class="kpi-valor">{{ number_format($alertasVencimento['vencidos'], 0, ',', '.') }}</div>
+            </div>
+            </a>
+            <a href="{{ route('alertas.vencimento', ['tipo' => 'vencendo']) }}" class="text-decoration-none">
+            <div class="farpop-kpi-card kpi-4" style="cursor:pointer">
+                <div class="kpi-label"><i class="fas fa-hourglass-half me-1"></i> Vencendo</div>
+                <div class="kpi-valor">{{ number_format($alertasVencimento['vencendo'], 0, ',', '.') }}</div>
+            </div>
+            </a>
             <div class="farpop-kpi-card kpi-2">
                 <div class="kpi-label"><i class="fas fa-exchange-alt me-1"></i> Movimentações hoje</div>
                 <div class="kpi-valor">{{ number_format($totais['entradas_hoje'], 0, ',', '.') }} / {{ number_format($totais['saidas_hoje'], 0, ',', '.') }}</div>

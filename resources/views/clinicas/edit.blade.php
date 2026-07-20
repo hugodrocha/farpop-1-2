@@ -18,7 +18,9 @@
                 @method('PUT')
                 <div class="row g-3">
                     <div class="col-md-6"><label class="form-label">Nome</label><input type="text" name="nome" class="form-control" value="{{ $clinica->nome }}" required></div>
-                    <div class="col-md-6"><label class="form-label">Responsável</label><input type="text" name="responsavel" class="form-control" value="{{ $clinica->responsavel }}"></div>
+                    <div class="col-md-3"><label class="form-label">CNES</label><input type="text" name="cnes" class="form-control" maxlength="20" value="{{ $clinica->cnes ?? '' }}"></div>
+                    <div class="col-md-3"><label class="form-label">CNPJ</label><input type="text" name="cnpj" class="form-control" maxlength="20" value="{{ $clinica->cnpj ?? '' }}"></div>
+                    <div class="col-md-6"><label class="form-label">Responsável técnico</label><input type="text" name="responsavel" class="form-control" value="{{ $clinica->responsavel }}"></div>
                     <div class="col-md-8"><label class="form-label">Endereço</label><input type="text" name="endereco" class="form-control" value="{{ $clinica->endereco }}"></div>
                     <div class="col-md-4"><label class="form-label">Bairro</label><input type="text" name="bairro" class="form-control" value="{{ $clinica->bairro }}"></div>
                     <div class="col-md-4"><label class="form-label">Telefone</label><input type="text" name="telefone" class="form-control" value="{{ $clinica->telefone }}"></div>

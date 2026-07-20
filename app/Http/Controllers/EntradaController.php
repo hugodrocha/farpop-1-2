@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Services\AuditoriaService;
 use App\Services\EstoqueService;
+use App\Services\Fase4SchemaService;
+use App\Services\LoteService;
 use App\Services\PerfilService;
 use App\Services\ValidadeService;
 use Illuminate\Http\Request;
@@ -35,8 +37,10 @@ class EntradaController extends Controller
         $perfil = session('perfil', '');
         $clinicaFixa = !PerfilService::ehAdmin($perfil) && session('clinica_id');
         $clinicas = DB::table('clinicas')->where('ativo', 1)->orderBy('nome')->get();
+        Fase4SchemaService::garantir();
+        $fornecedores = DB::table('fornecedores')->where('ativo', 1)->orderBy('nome')->get();
 
-        return view('entradas.create', compact('clinicas', 'clinicaFixa'));
+        return view('entradas.create', compact('clinicas', 'clinicaFixa', 'fornecedores'));
     }
 
     public function store(Request $request)
@@ -55,7 +59,10 @@ class EntradaController extends Controller
             'med_qtd.*' => 'integer|min:1',
             'med_lote' => 'nullable|array',
             'med_validade' => 'nullable|array',
+            'med_fabricante' => 'nullable|array',
             'med_obs' => 'nullable|array',
+            'tipo_entrada' => 'nullable|in:entrada_compra,entrada_doacao,devolucao',
+            'fornecedor_id' => 'nullable|integer',
         ]);
 
         $clinicaId = $clinicaFixa ? (int) session('clinica_id') : (int) $data['clinica_id'];
@@ -78,6 +85,7 @@ class EntradaController extends Controller
                 'medicamento_id' => $medId,
                 'quantidade' => $qtd,
                 'lote' => trim($data['med_lote'][$i] ?? '') ?: null,
+                'fabricante' => trim($data['med_fabricante'][$i] ?? '') ?: null,
                 'validade' => ValidadeService::normalizar($validade ?: null),
                 'observacao' => trim($data['med_obs'][$i] ?? '') ?: null,
             ];
@@ -90,22 +98,42 @@ class EntradaController extends Controller
 
         DB::transaction(function () use ($clinicaId, $data, $itens, $totalQtd) {
             $uid = session('usuario_id');
+            Fase4SchemaService::garantir();
 
             foreach ($itens as $item) {
-                DB::table('entradas_medicamentos')->insert([
+                $tipoEntrada = trim($data['tipo_entrada'] ?? 'entrada_compra') ?: 'entrada_compra';
+
+                $entradaId = DB::table('entradas_medicamentos')->insertGetId([
                     'clinica_id' => $clinicaId,
                     'medicamento_id' => $item['medicamento_id'],
                     'quantidade' => $item['quantidade'],
                     'lote' => $item['lote'],
+                    'fabricante' => $item['fabricante'] ?? null,
                     'validade' => $item['validade'],
+                    'tipo_entrada' => $tipoEntrada,
                     'nota_fiscal' => $data['nota_fiscal'] ?? null,
                     'origem' => $data['origem'] ?? null,
+                    'fornecedor_id' => !empty($data['fornecedor_id']) ? (int) $data['fornecedor_id'] : null,
                     'observacao' => $item['observacao'] ?? $data['observacao'] ?? null,
                     'usuario_id' => $uid,
                     'data_entrada' => now(),
                 ]);
 
-                EstoqueService::somarOuCriar($clinicaId, $item['medicamento_id'], $item['quantidade']);
+                LoteService::adicionarLote(
+                    $clinicaId,
+                    $item['medicamento_id'],
+                    $item['quantidade'],
+                    $tipoEntrada,
+                    $item['lote'],
+                    $item['validade'],
+                    $item['fabricante'] ?? null,
+                    null,
+                    $entradaId,
+                    'entrada',
+                    $entradaId,
+                    $uid ? (int) $uid : null,
+                    $item['observacao'] ?? null
+                );
             }
 
             AuditoriaService::registrar(

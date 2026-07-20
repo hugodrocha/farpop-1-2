@@ -68,9 +68,12 @@ class SaidaService
             }
 
             $est = EstoqueService::getAtual($clinicaId, $it['medicamento_id']);
-            if ($est < $it['quantidade']) {
+            $reservado = ReservaService::quantidadeReservadaAtiva($clinicaId, $it['medicamento_id']);
+            $reservaPaciente = ReservaService::quantidadeReservadaPaciente($pacienteId, $clinicaId, (int) $it['medicamento_id']);
+            $disponivel = $est - max(0, $reservado - $reservaPaciente);
+            if ($disponivel < $it['quantidade']) {
                 $nome = DB::table('medicamentos')->where('id', $it['medicamento_id'])->value('nome') ?: 'Medicamento';
-                $erros[] = "Estoque insuficiente para {$nome}. Disponível: {$est}, pedido: {$it['quantidade']}.";
+                $erros[] = "Estoque disponível insuficiente para {$nome}. Disponível: {$disponivel}, pedido: {$it['quantidade']}.";
             }
         }
 
@@ -82,9 +85,7 @@ class SaidaService
             $registrados = [];
 
             foreach ($itens as $it) {
-                if (!EstoqueService::subtrair($clinicaId, $it['medicamento_id'], $it['quantidade'])) {
-                    throw new RuntimeException('Falha ao debitar estoque.');
-                }
+                LoteService::inicializar();
 
                 $saidaId = DB::table('saidas_medicamentos')->insertGetId([
                     'clinica_id' => $clinicaId,
@@ -97,6 +98,32 @@ class SaidaService
                     'usuario_id' => $usuarioId,
                     'data_saida' => now(),
                 ]);
+
+                $baixas = LoteService::baixarPepe(
+                    $clinicaId,
+                    $it['medicamento_id'],
+                    $it['quantidade'],
+                    'dispensa_paciente',
+                    'saida',
+                    $saidaId,
+                    $usuarioId
+                );
+
+                foreach ($baixas as $bx) {
+                    DB::table('saidas_lotes')->insert([
+                        'saida_id' => $saidaId,
+                        'lote_id' => $bx['lote_id'],
+                        'quantidade' => $bx['quantidade'],
+                    ]);
+                }
+
+                ReservaService::consumirNaDispensa(
+                    $pacienteId,
+                    (int) $it['medicamento_id'],
+                    $clinicaId,
+                    (int) $it['quantidade'],
+                    (int) $saidaId
+                );
 
                 $registrados[] = $saidaId;
             }

@@ -1,41 +1,149 @@
 # FARPOP 1.1
 
-Sistema de gestão farmacêutica da Prefeitura de Mesquita, migrado do PHP legado (`htdocs/farpop`) para Laravel 12.
+Sistema de **gestão farmacêutica municipal** da Prefeitura de Mesquita (Farmácia Popular), migrado do PHP legado (`htdocs/farpop`) para **Laravel 12**.
+
+O FARPOP cobre cadastros, controle de estoque por lote (PEPS/FIFO), dispensa ao paciente, transferências matriz → unidade, solicitações com aprovação, relatórios, alertas, chat interno, integrações (PEC/e-SUS, exportação Hórus) e backup do banco.
+
+---
+
+## Stack
+
+| Item | Tecnologia |
+|------|------------|
+| Backend | PHP 8.2+, Laravel 12 |
+| Banco principal | MySQL (`farpop`) — schema legado |
+| Frontend | Blade, Bootstrap 5, Font Awesome |
+| Auth | Sessão (`usuario_id`, `perfil`, `clinica_id`) |
+| Integração e-SUS | PostgreSQL (PEC), opcional |
+
+---
+
+## Roadmap (fases concluídas)
+
+| Fase | Conteúdo | Status |
+|------|----------|--------|
+| **1** | Cadastros básicos, entradas/dispensas, transferências, dashboard, auditoria, chat | Concluída |
+| **2** | Pacientes, relatórios (CSV/impressão), alertas de vencimento, CNES/CNPJ em unidades | Concluída |
+| **3** | Lotes PEPS/FIFO, inventário, ajustes, movimentações, etiquetas | Concluída |
+| **4** | Solicitação → aprovação → separação → envio, fornecedores/fabricantes, reservas, Hórus, backup | Concluída |
+
+**Próximo previsto:** transferência entre unidades (sem passar pela central), integração Hórus via API (hoje é exportação CSV manual).
+
+Detalhes dos módulos e perfis: `config/farpop.php`.
+
+---
 
 ## Módulos implementados
 
-- **Autenticação** — login, bloqueio por tentativas, perfis de acesso
-- **Dashboard** — visão global (admin/central) e visão por unidade, KPIs, gráficos SVG, alertas de estoque
+### Operação diária
+
+- **Dashboard** — visão global (admin/central) ou por unidade; KPIs (estoque, alertas, transferências, solicitações, validade)
 - **Estoque** — consulta com semáforo verde/amarelo/vermelho
-- **Entradas / Saídas** — movimentação com auditoria; saídas com múltiplos itens, bloqueio de duplicidade no dia, comprovante
-- **Transferências** — lote com código de barras, nota 26 dígitos, recebimento, trânsito, cancelamento
-- **Aqui Tem** — busca de medicamentos disponíveis por unidade
-- **Cadastros** — clínicas, medicamentos, importação REMUME (CSV)
-- **Usuários** — CRUD com perfis hierárquicos
-- **Chat** — canal geral + mensagens privadas (widget flutuante)
-- **Barra de avisos** — marquee no rodapé
-- **Configurações** — alertas de estoque, chat, diagnóstico PEC/e-SUS
-- **Auditoria** — log de ações + ações críticas (zerar estoque, superuser)
-- **Trocar senha**
+- **Entradas** — compra, doação ou devolução; lote/validade/fabricante; vínculo com fornecedor cadastrado
+- **Dispensa (saídas)** — múltiplos itens, bloqueio de duplicidade no dia, comprovante, baixa PEPS
+- **Reservas** — medicamento reservado por paciente; consumo automático na dispensa
+- **Lotes (PEPS/FIFO)** — saldo por lote, etiqueta, histórico de movimentações
+- **Inventário e ajustes** — contagem física e ajustes tipados (perda, vencimento etc.)
+- **Aqui Tem** — busca de disponibilidade por unidade
 
-## Interface
+### Transferências
 
-- Bootstrap 5 + tema customizado com **degradês verde/teal/cyan**
-- Sidebar colapsável (padrão TELREG 2.0)
-- **Brasão da Prefeitura** como marca d'água no conteúdo
-- Barra inferior de avisos + botão flutuante de chat
+- **Envio direto** (central → unidade) — montagem por código de barras, guia 26 dígitos
+- **Recebimento** — confirmação na unidade destino
+- **Em trânsito** — acompanhamento
+- **Solicitações** — unidade solicita → central aprova/recusa → separação → gera transferência
+
+### Cadastros
+
+- Unidades de saúde (CNES, CNPJ)
+- Medicamentos + importação REMUME (CSV)
+- Pacientes (histórico de dispensas)
+- Fornecedores e fabricantes
+- Usuários (perfis hierárquicos)
+
+### Gestão e integrações
+
+- **Relatórios** — hub com exportação CSV e impressão (estoque, validade, dispensas, transferências, consumo)
+- **Alertas** — estoque baixo/crítico, vencimento, barra de avisos
+- **Chat interno** — widget flutuante, contatos, grupos, online/offline, auditoria de chat
+- **PEC/e-SUS** — busca de cidadão por CPF (PostgreSQL)
+- **Hórus / SUS** — exportação CSV de movimentações para integração manual (BNAFAR)
+- **Auditoria** — log de ações + ações críticas
+- **Configurações** — alertas, chat, teste PEC, backup manual
+- **Backup automático** — comando Artisan + agendamento diário
+
+---
+
+## Perfis de acesso
+
+| Perfil | Descrição resumida |
+|--------|-------------------|
+| `superuser` | Acesso total |
+| `admin` | Administração municipal |
+| `gestor` | Cadastros e operações |
+| `farmaceutico` | Dispensa, estoque da unidade, usuários locais |
+| `tecnico` | Auxiliar de farmácia (entradas/saídas) |
+| `consulta` | Aqui Tem (+ chat, se habilitado) |
+
+Controle centralizado em `ModuloService` e middleware `farpop.perfil`.
+
+---
+
+## Como executar
+
+**Importante:** FARPOP e TELREG 2.0 usam portas diferentes na mesma máquina.
+
+| Sistema | URL | Porta |
+|---------|-----|-------|
+| **FARPOP 1.1** | http://127.0.0.1:8001/login | **8001** |
+| TELREG 2.0 | http://127.0.0.1:8000/login | 8000 |
+
+### Instalação
+
+```powershell
+cd C:\laravel\farpop-1-1
+composer install
+copy .env.example .env
+php artisan key:generate
+```
+
+Configure o `.env` (MySQL — ver seção abaixo).
+
+### Subir o servidor
+
+```powershell
+php artisan serve --host=127.0.0.1 --port=8001
+```
+
+Ou dê duplo clique em **`serve-farpop.bat`**.
+
+**Credenciais padrão:** `super.admin` / `farpop2026`
+
+---
 
 ## Banco de dados
 
-O sistema usa o banco MySQL **`farpop`** existente (mesmo schema do `instalar.php` legado). Configure no `.env`:
+O sistema usa o banco MySQL **`farpop`** existente (schema do `instalar.php` legado). **Não há migrations Laravel** para as tabelas de negócio.
+
+Novas estruturas (lotes, solicitações, reservas, fornecedores etc.) são criadas automaticamente na primeira execução pelos *schema services*:
+
+- `LoteSchemaService` — lotes e movimentações
+- `ClinicaSchemaService` — CNES/CNPJ
+- `Fase4SchemaService` — solicitações, reservas, fornecedores, fabricantes
+- `ChatSchemaService` — conversas e mensagens
+
+### `.env` — MySQL
 
 ```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
 DB_DATABASE=farpop
 DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-Opcional — integração PEC/e-SUS (PostgreSQL):
+### `.env` — PEC/e-SUS (opcional)
 
 ```env
 PEC_HABILITADO=false
@@ -45,36 +153,135 @@ PEC_DB=esus
 PEC_USER=postgres
 PEC_PASSWORD=
 PEC_SCHEMA=public
+PEC_TIMEOUT=3
 ```
 
-## Como executar
+### `.env` — Backup (opcional)
 
-**Importante:** o TELREG 2.0 e o FARPOP rodam em portas diferentes para não conflitar.
+Se `mysqldump` não estiver no PATH:
 
-| Sistema | URL | Porta |
-|---------|-----|-------|
-| **FARPOP 1.1** | http://127.0.0.1:8001/login | 8001 |
-| TELREG 2.0 | http://127.0.0.1:8000/login | 8000 |
+```env
+FARPOP_MYSQLDUMP_PATH=C:\xampp\mysql\bin\mysqldump.exe
+```
 
-Se abrir `http://127.0.0.1:8000/login`, verá o **TELREG** — isso é normal quando os dois projetos estão na mesma máquina.
+---
 
-### FARPOP (porta 8001)
+## Backup do banco
+
+### Manual
 
 ```powershell
-cd C:\laravel\farpop-1-1
-composer install
-php artisan serve --host=127.0.0.1 --port=8001
+php artisan farpop:backup-banco
 ```
 
-Ou dê duplo clique em **`serve-farpop.bat`** na pasta do projeto.
+Ou em **Configurações → Backup do banco** (admin).
 
-Acesse: **http://127.0.0.1:8001/login**
+Arquivos gerados em: `storage/app/backups/farpop/`
 
-**Credenciais padrão:** `super.admin` / `farpop2026`
+### Automático
 
-## Estrutura
+Agendado diariamente às **02:00** em `bootstrap/app.php`. No servidor, configure o cron / Agendador de Tarefas:
 
-- `app/Services/` — regras de negócio (estoque, transferências, saídas, PEC, chat…)
-- `app/Http/Middleware/` — autenticação e controle de perfil
-- `resources/views/` — telas Blade
-- `config/farpop.php` — configurações do sistema
+```powershell
+# A cada minuto (Windows Task Scheduler ou cron Linux)
+php C:\laravel\farpop-1-1\artisan schedule:run
+```
+
+Reservas vencidas são expiradas automaticamente às **01:00**.
+
+---
+
+## Comandos Artisan úteis
+
+| Comando | Descrição |
+|---------|-----------|
+| `php artisan farpop:backup-banco` | Gera dump SQL do MySQL |
+| `php artisan farpop:backup-banco --keep=30` | Mantém backups por 30 dias |
+| `php artisan schedule:run` | Executa tarefas agendadas (backup, reservas) |
+
+---
+
+## Rotas principais
+
+| Área | URL |
+|------|-----|
+| Login | `/login` |
+| Dashboard | `/dashboard` |
+| Estoque | `/estoque` |
+| Entradas | `/entradas` |
+| Dispensa | `/saidas` |
+| Reservas | `/reservas` |
+| Lotes | `/lotes` |
+| Inventário | `/inventario` |
+| Ajustes | `/ajustes/novo` |
+| Movimentações | `/movimentacoes` |
+| Transferências | `/transferencias` |
+| Solicitações | `/solicitacoes` |
+| Pacientes | `/pacientes` |
+| Alertas validade | `/alertas/vencimento` |
+| Relatórios | `/relatorios` |
+| Fornecedores | `/fornecedores` |
+| Fabricantes | `/fabricantes` |
+| Hórus / SUS | `/integracoes/horus` |
+| Configurações | `/configuracoes` |
+| Auditoria | `/auditoria` |
+| Chat API | `/chat/api` |
+
+Lista completa: `php artisan route:list`
+
+---
+
+## Interface
+
+- Bootstrap 5 + tema customizado (verde/teal/cyan)
+- Sidebar colapsável (padrão TELREG 2.0)
+- Brasão da Prefeitura como identidade visual
+- Barra inferior de avisos + widget de chat arrastável
+
+---
+
+## Estrutura do projeto
+
+```
+app/
+├── Console/Commands/     # BackupDatabaseCommand
+├── Http/
+│   ├── Controllers/      # Telas e rotas web
+│   └── Middleware/       # FarpopAuth, PerfilAutorizado
+└── Services/             # Regras de negócio
+    ├── ModuloService.php
+    ├── LoteService.php
+    ├── SolicitacaoTransferenciaService.php
+    ├── ReservaService.php
+    ├── HorusExportService.php
+    └── ...
+
+config/farpop.php         # Módulos, perfis, roadmap
+resources/views/          # Blade
+routes/web.php            # Rotas
+bootstrap/app.php         # Middleware + schedule
+```
+
+---
+
+## Fluxo: solicitação de transferência
+
+1. **Unidade** cria solicitação em `/solicitacoes/nova`
+2. **Central** abre a solicitação → aprova quantidades ou recusa
+3. Central inicia **separação** (opcional) e clica **Enviar transferência**
+4. Sistema gera a transferência (PEPS) e guia de nota
+5. **Unidade destino** recebe em `/transferencias/receber`
+
+---
+
+## Desenvolvimento
+
+- Regras de negócio ficam em **Services**, não nos controllers
+- Permissões: `ModuloService::podeAcessar()` / `podeAcessarSubmodulo()`
+- Alterações de schema legado: criar ou estender um `*SchemaService::garantir()`
+
+---
+
+## Licença
+
+Uso interno — Prefeitura Municipal de Mesquita / Farmácia Popular.

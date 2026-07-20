@@ -104,11 +104,15 @@ class EstoqueService
 
     public static function zerarTudo(): void
     {
+        LoteService::inicializar();
+        DB::table('estoque_lotes')->update(['quantidade' => 0, 'atualizado_em' => now()]);
         DB::table('estoque')->update(['quantidade' => 0, 'atualizado_em' => now()]);
     }
 
     public static function zerarClinica(int $clinicaId): void
     {
+        LoteService::inicializar();
+        DB::table('estoque_lotes')->where('clinica_id', $clinicaId)->update(['quantidade' => 0, 'atualizado_em' => now()]);
         DB::table('estoque')->where('clinica_id', $clinicaId)->update([
             'quantidade' => 0,
             'atualizado_em' => now(),
@@ -117,6 +121,8 @@ class EstoqueService
 
     public static function zerarMedicamento(int $medicamentoId): void
     {
+        LoteService::inicializar();
+        DB::table('estoque_lotes')->where('medicamento_id', $medicamentoId)->update(['quantidade' => 0, 'atualizado_em' => now()]);
         DB::table('estoque')->where('medicamento_id', $medicamentoId)->update([
             'quantidade' => 0,
             'atualizado_em' => now(),
