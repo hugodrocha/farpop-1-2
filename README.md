@@ -1,4 +1,4 @@
-# FARPOP 1.1
+# FARPOP 1.2
 
 Sistema de **gestão farmacêutica municipal** da Prefeitura de Mesquita (Farmácia Popular), migrado do PHP legado (`htdocs/farpop`) para **Laravel 12**.
 
@@ -20,7 +20,7 @@ O FARPOP cobre cadastros, controle de estoque por lote (PEPS/FIFO), dispensa ao 
 
 ## Roadmap (fases)
 
-**Total: 12 fases — roadmap FARPOP 1.1 concluído.**
+### FARPOP 1.1 — concluído (12 fases)
 
 | Fase | Conteúdo | Status |
 |------|----------|--------|
@@ -36,6 +36,17 @@ O FARPOP cobre cadastros, controle de estoque por lote (PEPS/FIFO), dispensa ao 
 | **10** | Ruptura/reposição, previsão de consumo, e-mail diário de alertas | Concluída |
 | **11** | Pedido de reposição (lista de compras) | Concluída |
 | **12** | Indicadores gerenciais mensais, consolidação final | Concluída |
+
+### FARPOP 1.2 — em andamento
+
+| Fase | Conteúdo | Status |
+|------|----------|--------|
+| **1** | Pedidos de compra registrados (workflow rascunho → enviado → atendido) | Concluída |
+| **2** | Ficha farmacêutica aprimorada + alertas na dispensa | Planejada |
+| **3** | Entrada vinculada ao pedido de compra | Planejada |
+| **4** | Notificações in-app | Planejada |
+| **5** | Relatórios por competência/programa | Planejada |
+| **6** | API REST de consulta | Planejada |
 
 Detalhes dos módulos e perfis: `config/farpop.php`.
 

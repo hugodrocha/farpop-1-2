@@ -24,6 +24,7 @@ use App\Http\Controllers\MovimentacaoController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\RelatorioController;
 use App\Http\Controllers\PecController;
+use App\Http\Controllers\PedidoCompraController;
 use App\Http\Controllers\PedidoReposicaoController;
 use App\Http\Controllers\ReceberTransferenciaController;
 use App\Http\Controllers\SaidaController;
@@ -114,6 +115,15 @@ Route::middleware('farpop.auth')->group(function () {
         Route::get('/pedidos-reposicao', [PedidoReposicaoController::class, 'index'])->name('pedidos-reposicao.index');
         Route::get('/pedidos-reposicao/exportar', [PedidoReposicaoController::class, 'exportar'])->name('pedidos-reposicao.exportar');
         Route::get('/pedidos-reposicao/imprimir', [PedidoReposicaoController::class, 'imprimir'])->name('pedidos-reposicao.imprimir');
+
+        Route::get('/pedidos-compra', [PedidoCompraController::class, 'index'])->name('pedidos-compra.index');
+        Route::post('/pedidos-compra', [PedidoCompraController::class, 'store'])->name('pedidos-compra.store');
+        Route::get('/pedidos-compra/{id}', [PedidoCompraController::class, 'show'])->name('pedidos-compra.show');
+        Route::post('/pedidos-compra/{id}/enviar', [PedidoCompraController::class, 'enviar'])->name('pedidos-compra.enviar');
+        Route::post('/pedidos-compra/{id}/atender', [PedidoCompraController::class, 'atender'])->name('pedidos-compra.atender');
+        Route::post('/pedidos-compra/{id}/cancelar', [PedidoCompraController::class, 'cancelar'])->name('pedidos-compra.cancelar');
+        Route::get('/pedidos-compra/{id}/exportar', [PedidoCompraController::class, 'exportar'])->name('pedidos-compra.exportar');
+        Route::get('/pedidos-compra/{id}/imprimir', [PedidoCompraController::class, 'imprimir'])->name('pedidos-compra.imprimir');
 
         Route::get('/lotes', [LoteController::class, 'index'])->name('lotes.index');
         Route::get('/lotes/{id}/etiqueta', [LoteController::class, 'etiqueta'])->name('lotes.etiqueta');

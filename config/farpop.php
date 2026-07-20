@@ -9,6 +9,8 @@
  * - planejado: previsto no roadmap
  */
 return [
+    'versao' => '1.2',
+
     'brasao_url' => 'https://prefeitura.mesquita.rj.gov.br/wp-content/uploads/2025/11/Brasao-Cidade-de-Mesquita-Colorido-1.png',
 
     'pec' => [
@@ -125,6 +127,7 @@ return [
                 'pendencias' => ['label' => 'Solicitações e transferências pendentes', 'status' => 'ativo'],
                 'ruptura' => ['label' => 'Ruptura e previsão de reposição', 'status' => 'ativo'],
                 'pedido_reposicao' => ['label' => 'Pedido de reposição', 'status' => 'ativo'],
+                'pedidos_compra' => ['label' => 'Pedidos de compra', 'status' => 'ativo'],
             ],
         ],
         'relatorios' => [
@@ -309,6 +312,64 @@ return [
                 'Roadmap FARPOP 1.1 concluído (12 fases)',
             ],
             'status' => 'concluido',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Roadmap FARPOP 1.2
+    |--------------------------------------------------------------------------
+    */
+    'roadmap_1_2' => [
+        'fase_1' => [
+            'titulo' => 'Pedidos de compra registrados',
+            'itens' => [
+                'Registro persistente a partir da lista de reposição',
+                'Workflow rascunho → enviado → atendido',
+                'Histórico, impressão e exportação CSV por pedido',
+            ],
+            'status' => 'concluido',
+        ],
+        'fase_2' => [
+            'titulo' => 'Ficha farmacêutica aprimorada',
+            'itens' => [
+                'KPIs e medicamentos recentes na ficha do paciente',
+                'Alerta de dispensa duplicada na tela de saída',
+                'Exportação CSV do histórico de dispensas',
+            ],
+            'status' => 'planejado',
+        ],
+        'fase_3' => [
+            'titulo' => 'Entrada vinculada ao pedido',
+            'itens' => [
+                'Marcar itens do pedido como recebidos na entrada',
+                'Rastreio pedido → nota de entrada',
+            ],
+            'status' => 'planejado',
+        ],
+        'fase_4' => [
+            'titulo' => 'Notificações in-app',
+            'itens' => [
+                'Central de notificações operacionais',
+                'Alertas de pedidos pendentes e rupturas críticas',
+            ],
+            'status' => 'planejado',
+        ],
+        'fase_5' => [
+            'titulo' => 'Relatórios por competência',
+            'itens' => [
+                'Consumo e dispensa por programa/competência REMUME',
+                'Exportação para prestação de contas',
+            ],
+            'status' => 'planejado',
+        ],
+        'fase_6' => [
+            'titulo' => 'API de consulta',
+            'itens' => [
+                'Endpoints REST para Aqui Tem e estoque por unidade',
+                'Autenticação por token para integrações externas',
+            ],
+            'status' => 'planejado',
         ],
     ],
 ];

@@ -11,6 +11,15 @@
         </div>
         <div class="d-flex gap-2 flex-wrap">
             <a href="{{ route('alertas.ruptura') }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-chart-line me-1"></i> Ver previsão</a>
+            <a href="{{ route('pedidos-compra.index') }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-file-invoice me-1"></i> Pedidos registrados</a>
+            @if($itens->isNotEmpty())
+            <form method="POST" action="{{ route('pedidos-compra.store') }}" class="d-inline">
+                @csrf
+                @if($clinicaId)<input type="hidden" name="clinica_id" value="{{ $clinicaId }}">@endif
+                @if($agrupar)<input type="hidden" name="agrupar" value="1">@endif
+                <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Registrar pedido de compra com {{ $itens->count() }} item(ns)?');"><i class="fas fa-save me-1"></i> Registrar pedido</button>
+            </form>
+            @endif
             <a href="{{ route('pedidos-reposicao.exportar', array_filter(['clinica_id' => $clinicaId ?: null, 'agrupar' => $agrupar ? 1 : null])) }}" class="btn btn-outline-success btn-sm"><i class="fas fa-file-csv me-1"></i> CSV</a>
             <a href="{{ route('pedidos-reposicao.imprimir', array_filter(['clinica_id' => $clinicaId ?: null, 'agrupar' => $agrupar ? 1 : null])) }}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="fas fa-print me-1"></i> Imprimir</a>
         </div>

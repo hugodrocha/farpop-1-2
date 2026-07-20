@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'FARPOP 1.1')</title>
+    <title>@yield('title', 'FARPOP ' . config('farpop.versao', '1.2'))</title>
     <link rel="icon" type="image/png" href="{{ config('farpop.brasao_url') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -43,7 +43,7 @@
                 <div class="sidebar-logo-area">
                     <img src="{{ config('farpop.brasao_url') }}" alt="Brasão Mesquita" class="sidebar-logo">
                     <div class="sidebar-texto-topo">
-                        <h1 class="sidebar-titulo">FARPOP 1.1</h1>
+                        <h1 class="sidebar-titulo">FARPOP {{ config('farpop.versao', '1.2') }}</h1>
                         <p class="sidebar-subtitulo">Farmácia Popular</p>
                     </div>
                 </div>
@@ -99,19 +99,20 @@
 
                     @if($podeAlertas)
                     <div class="sidebar-item">
-                        <button type="button" class="sidebar-dropdown-btn {{ request()->routeIs('alertas.*') ? 'active' : '' }}" onclick="toggleSubmenu('menuAlertas', this)">
+                        <button type="button" class="sidebar-dropdown-btn {{ request()->routeIs('alertas.*','pedidos-reposicao.*','pedidos-compra.*') ? 'active' : '' }}" onclick="toggleSubmenu('menuAlertas', this)">
                             <i class="fas fa-bell sidebar-icone"></i><span class="sidebar-label">Alertas</span>
-                            <span class="sidebar-seta {{ request()->routeIs('alertas.*') ? 'open' : '' }}">▾</span>
+                            <span class="sidebar-seta {{ request()->routeIs('alertas.*','pedidos-reposicao.*','pedidos-compra.*') ? 'open' : '' }}">▾</span>
                         </button>
                         <span class="sidebar-tooltip">Alertas</span>
                     </div>
-                    <div id="menuAlertas" class="sidebar-submenu {{ request()->routeIs('alertas.*') ? 'show' : '' }}">
+                    <div id="menuAlertas" class="sidebar-submenu {{ request()->routeIs('alertas.*','pedidos-reposicao.*','pedidos-compra.*') ? 'show' : '' }}">
                         <a href="{{ route('alertas.index') }}" class="sidebar-sublink {{ request()->routeIs('alertas.index') ? 'active' : '' }}"><i class="fas fa-bell sidebar-icone"></i><span class="sidebar-label">Central</span></a>
                         <a href="{{ route('alertas.estoque') }}" class="sidebar-sublink {{ request()->routeIs('alertas.estoque') ? 'active' : '' }}"><i class="fas fa-exclamation-triangle sidebar-icone"></i><span class="sidebar-label">Estoque baixo</span></a>
                         <a href="{{ route('alertas.vencimento') }}" class="sidebar-sublink {{ request()->routeIs('alertas.vencimento') ? 'active' : '' }}"><i class="fas fa-calendar-times sidebar-icone"></i><span class="sidebar-label">Validade</span></a>
                         <a href="{{ route('alertas.pendencias') }}" class="sidebar-sublink {{ request()->routeIs('alertas.pendencias') ? 'active' : '' }}"><i class="fas fa-clock sidebar-icone"></i><span class="sidebar-label">Pendências</span></a>
                         <a href="{{ route('alertas.ruptura') }}" class="sidebar-sublink {{ request()->routeIs('alertas.ruptura') ? 'active' : '' }}"><i class="fas fa-chart-line sidebar-icone"></i><span class="sidebar-label">Ruptura / reposição</span></a>
                         <a href="{{ route('pedidos-reposicao.index') }}" class="sidebar-sublink {{ request()->routeIs('pedidos-reposicao.*') ? 'active' : '' }}"><i class="fas fa-shopping-cart sidebar-icone"></i><span class="sidebar-label">Pedido de reposição</span></a>
+                        <a href="{{ route('pedidos-compra.index') }}" class="sidebar-sublink {{ request()->routeIs('pedidos-compra.*') ? 'active' : '' }}"><i class="fas fa-file-invoice sidebar-icone"></i><span class="sidebar-label">Pedidos de compra</span></a>
                     </div>
                     @endif
 
@@ -225,7 +226,7 @@
         @if($logado)
         <div class="menu-mobile-topo">
             <button type="button" class="menu-mobile-botao" id="btnAbrirMenuMobile"><i class="fas fa-bars"></i></button>
-            <p class="menu-mobile-titulo">FARPOP 1.1</p>
+            <p class="menu-mobile-titulo">FARPOP {{ config('farpop.versao', '1.2') }}</p>
             <span style="width:42px;"></span>
         </div>
         @endif

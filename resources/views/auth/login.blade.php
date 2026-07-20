@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>FARPOP 1.1 — Acesso ao sistema</title>
+    <title>FARPOP {{ config('farpop.versao', '1.2') }} — Acesso ao sistema</title>
     <link rel="icon" type="image/png" href="https://prefeitura.mesquita.rj.gov.br/wp-content/uploads/2025/11/Brasao-Cidade-de-Mesquita-Colorido-1.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -368,7 +368,7 @@
                     <img src="{{ asset('images/brasao-mesquita.png') }}" alt="Prefeitura Municipal de Mesquita">
                 </div>
 
-                <h1>FARPOP 1.1</h1>
+                <h1>FARPOP {{ config('farpop.versao', '1.2') }}</h1>
                 <p class="subtitulo">Sistema de Gestão Farmacêutica</p>
                 <div class="divisor"></div>
                 <p class="descricao">
@@ -396,7 +396,7 @@
                     <div class="login-logo">
                         <img src="{{ asset('images/brasao-mesquita.png') }}" alt="Prefeitura Municipal de Mesquita">
                     </div>
-                    <h1>FARPOP 1.1</h1>
+                    <h1>FARPOP {{ config('farpop.versao', '1.2') }}</h1>
                 </div>
 
                 <div class="login-card-header">
@@ -432,7 +432,7 @@
 
                 <div class="login-rodape">
                     <p class="institucional">Ambiente interno de uso institucional.</p>
-                    <p class="creditos">Prefeitura Municipal de Mesquita &bull; {{ date('Y') }} &bull; FARPOP 1.1</p>
+                    <p class="creditos">Prefeitura Municipal de Mesquita &bull; {{ date('Y') }} &bull; FARPOP {{ config('farpop.versao', '1.2') }}</p>
                 </div>
             </div>
         </div>
