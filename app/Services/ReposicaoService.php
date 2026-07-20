@@ -23,8 +23,45 @@ class ReposicaoService
     }
 
     /**
-     * Previsão de reposição com base no consumo médio de dispensas.
-     *
+     * Lista de compras/reposição — itens com quantidade sugerida > 0.
+     */
+    public static function pedidoReposicao(?int $clinicaId = null, bool $agruparMedicamento = false): Collection
+    {
+        $itens = self::analisar($clinicaId, 'reposicao')
+            ->filter(fn ($row) => (int) $row->qtd_sugerida > 0)
+            ->values();
+
+        if (!$agruparMedicamento || $clinicaId > 0) {
+            return $itens;
+        }
+
+        return $itens
+            ->groupBy('medicamento_id')
+            ->map(function (Collection $grupo) {
+                $first = $grupo->first();
+                $unidades = $grupo->pluck('unidade')->unique()->implode(', ');
+
+                return (object) [
+                    'unidade' => $unidades,
+                    'medicamento_id' => $first->medicamento_id,
+                    'codigo' => $first->codigo,
+                    'medicamento' => $first->medicamento,
+                    'dosagem' => $first->dosagem,
+                    'quantidade' => $grupo->sum('quantidade'),
+                    'estoque_minimo' => $first->estoque_minimo,
+                    'consumo_medio_dia' => round($grupo->avg('consumo_medio_dia'), 2),
+                    'dias_restantes' => $grupo->pluck('dias_restantes')->filter(fn ($d) => $d !== null)->min(),
+                    'qtd_sugerida' => $grupo->sum('qtd_sugerida'),
+                    'situacao' => $grupo->contains(fn ($r) => $r->situacao === 'ruptura') ? 'ruptura' : ($grupo->contains(fn ($r) => $r->situacao === 'critico') ? 'critico' : 'atencao'),
+                    'situacao_label' => $grupo->contains(fn ($r) => $r->situacao === 'ruptura') ? 'Ruptura (zerado)' : ($grupo->contains(fn ($r) => $r->situacao === 'critico') ? 'Crítico' : 'Atenção'),
+                    'badge_class' => $grupo->contains(fn ($r) => $r->situacao === 'ruptura') ? 'dark' : ($grupo->contains(fn ($r) => $r->situacao === 'critico') ? 'danger' : 'warning'),
+                ];
+            })
+            ->sortBy('medicamento')
+            ->values();
+    }
+
+    /**
      * @param 'todos'|'ruptura'|'critico'|'atencao'|null $filtro
      */
     public static function analisar(?int $clinicaId = null, ?string $filtro = 'todos'): Collection

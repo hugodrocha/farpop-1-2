@@ -124,6 +124,7 @@ return [
                 'vencimento' => ['label' => 'Medicamentos vencendo/vencidos', 'status' => 'ativo'],
                 'pendencias' => ['label' => 'Solicitações e transferências pendentes', 'status' => 'ativo'],
                 'ruptura' => ['label' => 'Ruptura e previsão de reposição', 'status' => 'ativo'],
+                'pedido_reposicao' => ['label' => 'Pedido de reposição', 'status' => 'ativo'],
             ],
         ],
         'relatorios' => [
@@ -289,6 +290,23 @@ return [
                 'E-mail diário de alertas (comando agendado)',
             ],
             'status' => 'concluido',
+        ],
+        'fase_11' => [
+            'titulo' => 'Pedido de reposição',
+            'itens' => [
+                'Lista de compras a partir da previsão de consumo',
+                'Exportação CSV e impressão com assinaturas',
+                'Agrupamento por medicamento na visão central',
+            ],
+            'status' => 'concluido',
+        ],
+        'fase_12' => [
+            'titulo' => 'Consolidação final (planejada)',
+            'itens' => [
+                'Indicadores gerenciais mensais',
+                'Revisão de documentação e polish operacional',
+            ],
+            'status' => 'planejado',
         ],
     ],
 ];

@@ -11,6 +11,7 @@
         </div>
         <div class="d-flex gap-2 flex-wrap">
             <a href="{{ route('alertas.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-bell me-1"></i> Central de alertas</a>
+            <a href="{{ route('pedidos-reposicao.index', array_filter(['clinica_id' => $clinicaId ?: null])) }}" class="btn btn-primary btn-sm"><i class="fas fa-shopping-cart me-1"></i> Gerar pedido</a>
             <a href="{{ route('relatorios.exportar', ['tipo' => 'reposicao', 'clinica_id' => $clinicaId ?: null]) }}" class="btn btn-outline-success btn-sm"><i class="fas fa-file-csv me-1"></i> Exportar</a>
             <a href="{{ route('relatorios.imprimir', array_filter(['tipo' => 'reposicao', 'clinica_id' => $clinicaId ?: null, 'filtro' => $filtro !== 'todos' ? $filtro : null])) }}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="fas fa-print me-1"></i> Imprimir</a>
         </div>

@@ -24,6 +24,7 @@ use App\Http\Controllers\MovimentacaoController;
 use App\Http\Controllers\PacienteController;
 use App\Http\Controllers\RelatorioController;
 use App\Http\Controllers\PecController;
+use App\Http\Controllers\PedidoReposicaoController;
 use App\Http\Controllers\ReceberTransferenciaController;
 use App\Http\Controllers\SaidaController;
 use App\Http\Controllers\TransferenciaController;
@@ -108,6 +109,10 @@ Route::middleware('farpop.auth')->group(function () {
         Route::get('/alertas/pendencias', [AlertaController::class, 'pendencias'])->name('alertas.pendencias');
         Route::get('/alertas/ruptura', [AlertaController::class, 'ruptura'])->name('alertas.ruptura');
         Route::get('/alertas/vencimento', [AlertaController::class, 'vencimento'])->name('alertas.vencimento');
+
+        Route::get('/pedidos-reposicao', [PedidoReposicaoController::class, 'index'])->name('pedidos-reposicao.index');
+        Route::get('/pedidos-reposicao/exportar', [PedidoReposicaoController::class, 'exportar'])->name('pedidos-reposicao.exportar');
+        Route::get('/pedidos-reposicao/imprimir', [PedidoReposicaoController::class, 'imprimir'])->name('pedidos-reposicao.imprimir');
 
         Route::get('/lotes', [LoteController::class, 'index'])->name('lotes.index');
         Route::get('/lotes/{id}/etiqueta', [LoteController::class, 'etiqueta'])->name('lotes.etiqueta');

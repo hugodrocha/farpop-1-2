@@ -111,6 +111,7 @@
                         <a href="{{ route('alertas.vencimento') }}" class="sidebar-sublink {{ request()->routeIs('alertas.vencimento') ? 'active' : '' }}"><i class="fas fa-calendar-times sidebar-icone"></i><span class="sidebar-label">Validade</span></a>
                         <a href="{{ route('alertas.pendencias') }}" class="sidebar-sublink {{ request()->routeIs('alertas.pendencias') ? 'active' : '' }}"><i class="fas fa-clock sidebar-icone"></i><span class="sidebar-label">Pendências</span></a>
                         <a href="{{ route('alertas.ruptura') }}" class="sidebar-sublink {{ request()->routeIs('alertas.ruptura') ? 'active' : '' }}"><i class="fas fa-chart-line sidebar-icone"></i><span class="sidebar-label">Ruptura / reposição</span></a>
+                        <a href="{{ route('pedidos-reposicao.index') }}" class="sidebar-sublink {{ request()->routeIs('pedidos-reposicao.*') ? 'active' : '' }}"><i class="fas fa-shopping-cart sidebar-icone"></i><span class="sidebar-label">Pedido de reposição</span></a>
                     </div>
                     @endif
 

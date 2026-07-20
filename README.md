@@ -18,7 +18,9 @@ O FARPOP cobre cadastros, controle de estoque por lote (PEPS/FIFO), dispensa ao 
 
 ---
 
-## Roadmap (fases concluídas)
+## Roadmap (fases)
+
+**Total previsto: 12 fases** (10 concluídas + Fase 11 em andamento + Fase 12 de consolidação final).
 
 | Fase | Conteúdo | Status |
 |------|----------|--------|
@@ -32,6 +34,8 @@ O FARPOP cobre cadastros, controle de estoque por lote (PEPS/FIFO), dispensa ao 
 | **8** | Hub de integrações, dashboard com alertas, inventário aprimorado | Concluída |
 | **9** | Curva ABC de consumo, importação de inventário via CSV | Concluída |
 | **10** | Ruptura/reposição, previsão de consumo, e-mail diário de alertas | Concluída |
+| **11** | Pedido de reposição (lista de compras) | Concluída |
+| **12** | Indicadores gerenciais e consolidação final | Planejada |
 
 Detalhes dos módulos e perfis: `config/farpop.php`.
 
@@ -231,6 +235,7 @@ Alertas por e-mail são enviados às **07:00** (se habilitado em Configurações
 | Alertas estoque | `/alertas/estoque` |
 | Alertas pendências | `/alertas/pendencias` |
 | Alertas ruptura | `/alertas/ruptura` |
+| Pedido de reposição | `/pedidos-reposicao` |
 | Alertas validade | `/alertas/vencimento` |
 | Relatórios | `/relatorios` |
 | Fornecedores | `/fornecedores` |
