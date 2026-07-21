@@ -33,7 +33,6 @@
         --gradiente-kpi-4: linear-gradient(135deg, #0d9488, #2dd4bf);
         --gradiente-kpi-5: linear-gradient(135deg, #dc2626, #991b1b);
         --brasao-url: url('https://prefeitura.mesquita.rj.gov.br/wp-content/uploads/2025/11/Brasao-Cidade-de-Mesquita-Colorido-1.png');
-        --sidebar-bg-cruz: url('{{ asset('images/sidebar-cruz-bg.png') }}');
         --sidebar-largura-colapsada: 78px;
         --sidebar-largura-expandida: 288px;
 
@@ -80,29 +79,6 @@
     .sidebar-sistema:hover, .sidebar-sistema.sidebar-fixada {
         width: var(--sidebar-largura-expandida);
         min-width: var(--sidebar-largura-expandida);
-    }
-
-    .sidebar-deco-cruz {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        z-index: 0;
-        overflow: hidden;
-        background:
-            linear-gradient(
-                to top,
-                rgba(2, 44, 34, 0.12) 0%,
-                rgba(2, 44, 34, 0.28) 55%,
-                rgba(1, 24, 18, 0.5) 100%
-            ),
-            var(--sidebar-bg-cruz) center bottom / cover no-repeat;
-    }
-
-    .sidebar-deco-cruz::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(180deg, rgba(1, 24, 18, 0.42) 0%, transparent 24%, transparent 100%);
     }
 
     .sidebar-topo, .sidebar-menu { position: relative; z-index: 1; }

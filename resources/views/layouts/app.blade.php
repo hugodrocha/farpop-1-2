@@ -37,7 +37,6 @@
     @if($logado)
         <div class="menu-overlay" id="menuOverlay" onclick="fecharMenuMobile()"></div>
         <aside class="sidebar-sistema" id="sidebarSistema">
-            <div class="sidebar-deco-cruz" aria-hidden="true"></div>
             <div class="sidebar-topo">
                 <button type="button" class="sidebar-pin-btn" id="btnFixarSidebar" title="Fixar menu"><i class="fas fa-thumbtack"></i></button>
                 <div class="sidebar-logo-area">
