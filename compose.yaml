@@ -1,0 +1,48 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${FARPOP_PORT:-8001}:80"
+    env_file:
+      - .env
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY:-}
+      DB_CONNECTION: mysql
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-farpop}
+      DB_USERNAME: ${FARPOP_DB_USERNAME:-farpop}
+      DB_PASSWORD: ${FARPOP_DB_PASSWORD:-farpop_local_change_me}
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - farpop-storage:/var/www/html/storage/app
+    command: sh -c "php artisan migrate --force && apache2-foreground"
+
+  database:
+    image: mariadb:11.8
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_DATABASE:-farpop}
+      MARIADB_USER: ${FARPOP_DB_USERNAME:-farpop}
+      MARIADB_PASSWORD: ${FARPOP_DB_PASSWORD:-farpop_local_change_me}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-farpop_root_local_change_me}
+    volumes:
+      - farpop-database:/var/lib/mysql
+      - ${FARPOP_SQL_FILE:-../../data_sql/farpop.sql}:/docker-entrypoint-initdb.d/01-farpop.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+volumes:
+  farpop-database:
+  farpop-storage:
